@@ -1,0 +1,27 @@
+{
+    "Version": "2019-10-30",
+    "StartAction": "1dcfb3e5-d41a-47cb-b3e6-984c9fbb3d22",
+    "Metadata": {
+        "entryPointPosition": {
+            "x": 40,
+            "y": 40
+        },
+        "ActionMetadata": {
+            "1dcfb3e5-d41a-47cb-b3e6-984c9fbb3d22": {
+                "position": {
+                    "x": 149.6,
+                    "y": 39.2
+                }
+            }
+        },
+        "Annotations": []
+    },
+    "Actions": [
+        {
+            "Parameters": {},
+            "Identifier": "1dcfb3e5-d41a-47cb-b3e6-984c9fbb3d22",
+            "Type": "EndFlowExecution",
+            "Transitions": {}
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+env  = "dev"
+repo = "connect-cicd-terraform/amzconnect-lambda-functions"
+# app              = "ACME"
+capability_id               = "ACME"
+bucket                      = "callflow-bucket-dev-us-east-1-1689174870695"
+ivr_id                      = "tfdemo"
+deploy_role_arn             = "arn:aws:iam::251778280686:role/gitlabDeploymentRole"
+idle_session_ttl_in_seconds = 300
+auto_build_bot_locales      = true
+lexbot_description          = "lexbot"
+lexbot_name                 = "lexbot"

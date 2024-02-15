@@ -1,0 +1,71 @@
+# Before script will make a AWS call on our behalf to STS to retrieve temporary credentials: https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#assume-role-with-web-identity 
+# The variables "ROLE_ARN" and "AWS_PROFILE" are defined in the project settings.
+# MY_OIDC_TOKEN is defined within the job and is then referenced
+assume-role:
+  environment: dev
+  image: 
+    name: amazon/aws-cli:latest
+    entrypoint: [""]
+  id_tokens:
+    MY_OIDC_TOKEN:
+      aud: https://gitlab.example.com
+  before_script:
+    - mkdir -p ~/.aws
+    - echo "${MY_OIDC_TOKEN}" > /tmp/web_identity_token
+    - echo -e "[profile oidc]\nrole_arn=${ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
+  script:
+    - >
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role-with-web-identity
+      --role-arn ${ROLE_ARN}
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --web-identity-token ${MY_OIDC_TOKEN}
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
+    - aws sts get-caller-identity
+
+
+
+# stages:
+#   - parent
+
+# connect-instance:
+#   stage: parent
+#   trigger:
+#     include: amzconnect-instance/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - changes: [amzconnect-instance/**/*]
+
+# admin-objects:
+#   stage: parent
+#   trigger:
+#     include: amzconnect-admin-objects/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - changes: [amzconnect-admin-objects/**/*]
+
+# workshop-lambda:
+#   stage: parent
+#   trigger:
+#     include: amzconnect-lambda-function-workshop/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - changes: [amzconnect-lambda-function-workshop/**/*]
+
+# supporting-infra:
+#   stage: parent
+#   trigger:
+#     include: amzconnect-supporting-infra/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - changes: [amzconnect-supporting-infra/**/*]
+
+# contact-flows:
+#   stage: parent
+#   trigger:
+#     include: amzconnect-contact-flows/.gitlab-ci.yml
+#     strategy: depend
+#   rules:
+#     - changes: [amzconnect-contact-flows/**/*]

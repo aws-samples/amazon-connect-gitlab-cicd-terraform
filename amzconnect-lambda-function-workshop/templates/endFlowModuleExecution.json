@@ -1,0 +1,43 @@
+{
+    "Version": "2019-10-30",
+    "StartAction": "1c331f22-85ab-452c-9133-2415f42cb47e",
+    "Metadata": {
+        "entryPointPosition": {
+            "x": 40,
+            "y": 40
+        },
+        "ActionMetadata": {
+            "1c331f22-85ab-452c-9133-2415f42cb47e": {
+                "position": {
+                    "x": 164.8,
+                    "y": 32
+                }
+            }
+        },
+        "Annotations": []
+    },
+    "Actions": [
+        {
+            "Parameters": {},
+            "Identifier": "1c331f22-85ab-452c-9133-2415f42cb47e",
+            "Type": "EndFlowModuleExecution",
+            "Transitions": {}
+        }
+    ],
+    "Settings": {
+        "InputParameters": [],
+        "OutputParameters": [],
+        "Transitions": [
+            {
+                "DisplayName": "Success",
+                "ReferenceName": "Success",
+                "Description": ""
+            },
+            {
+                "DisplayName": "Error",
+                "ReferenceName": "Error",
+                "Description": ""
+            }
+        ]
+    }
+}

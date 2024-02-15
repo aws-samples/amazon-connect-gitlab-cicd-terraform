@@ -1,0 +1,5 @@
+{
+    "Name": "ACME_customer_whisper_AUTO",
+    "Type": "CUSTOMER_WHISPER",
+    "Content": "{\"Version\":\"2019-10-30\",\"StartAction\":\"89950b57-ae53-44b0-8cf8-6e54a76d634f\",\"Metadata\":{\"entryPointPosition\":{\"x\":74,\"y\":75},\"snapToGrid\":false,\"ActionMetadata\":{\"ef747366-46cb-4d97-a096-dd34af2a807f\":{\"position\":{\"x\":485,\"y\":132}},\"89950b57-ae53-44b0-8cf8-6e54a76d634f\":{\"position\":{\"x\":225,\"y\":104},\"useDynamic\":false}}},\"Actions\":[{\"Identifier\":\"ef747366-46cb-4d97-a096-dd34af2a807f\",\"Parameters\":{},\"Transitions\":{},\"Type\":\"EndFlowExecution\"},{\"Identifier\":\"89950b57-ae53-44b0-8cf8-6e54a76d634f\",\"Parameters\":{\"Text\":\"Going to $.Queue.Name\"},\"Transitions\":{\"NextAction\":\"ef747366-46cb-4d97-a096-dd34af2a807f\",\"Errors\":[],\"Conditions\":[]},\"Type\":\"MessageParticipant\"}]}"
+}

@@ -1,0 +1,16 @@
+*.js
+!scripts/*.js
+!**/scripts/*.js
+!jest.config.js
+*.d.ts
+node_modules
+**/node_modules
+**/.terraform/**/*
+**/.terraform*
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Terraform
+.terraform/**/*

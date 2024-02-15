@@ -1,0 +1,204 @@
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+
+image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+
+
+variables:
+  # AWS_CREDS_TARGET_ROLE: "${AWS_CREDS_TARGET_ROLE}"
+  # AWS_DEFAULT_REGION: us-east-1   # Only used for initial role assumption, has no effect on resource deployment
+  TF_ROOT: amzconnect-admin-objects/terraform
+  COMMIT_ID: $CI_COMMIT_SHORT_SHA
+
+stages:
+  - validate
+  - test
+  - auth
+  - plan
+  - deploy
+  - cleanup
+
+fmt:
+  stage: validate
+  script:
+    - gitlab-terraform fmt
+
+validate:
+  allow_failure: false
+  stage: validate
+  script:
+   - gitlab-terraform validate
+
+checkov:
+  stage: test
+  allow_failure: true  # True for AutoDevOps compatibility
+  image:
+    name: bridgecrew/checkov:latest
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  rules:
+    - if: $SAST_DISABLED
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      exists:
+        - '**/*.yml'
+        - '**/*.yaml'
+        - '**/*.json'
+        - '**/*.template'
+        - '**/*.tf'      
+        - '**/serverless.yml'
+        - '**/serverless.yaml'
+  script:
+    - checkov -d ../amzconnect-admin-objects/terraform  -o junitxml | tee checkov.test.xml
+  artifacts:
+    reports:
+      junit: "checkov.test.xml"
+    paths:
+      - "checkov.test.xml"
+
+.aws_assume_role:
+  id_tokens:
+    MY_OIDC_TOKEN:
+      aud: https://gitlab.example.com
+  before_script:
+    - apk add aws-cli
+    - mkdir -p ~/.aws
+    - echo "${MY_OIDC_TOKEN}" > /tmp/web_identity_token
+    - echo -e "[profile oidc]\nrole_arn=${DEVOPS_ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
+    - >
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role
+      --role-arn "${AWS_CREDS_TARGET_ROLE}"
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
+    - aws sts get-caller-identity
+
+.aws_assume_role:
+  id_tokens:
+    MY_OIDC_TOKEN:
+      aud: https://gitlab.example.com
+  before_script:
+    - apk add aws-cli
+    - mkdir -p ~/.aws
+    - echo "${MY_OIDC_TOKEN}" > /tmp/web_identity_token
+    - echo -e "[profile oidc]\nrole_arn=${DEVOPS_ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
+    - >
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role
+      --role-arn "${AWS_CREDS_TARGET_ROLE}"
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
+    - aws sts get-caller-identity
+
+plan:
+  stage: plan
+  # only used when setup for OIDC
+  extends: .aws_assume_role
+  script:
+    - gitlab-terraform -version
+    - gitlab-terraform plan -var-file=${DEPLOYMENT_ENV_NAME}.tfvars
+  environment: "${DEPLOYMENT_ENV_NAME}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      variables: 
+        DEPLOYMENT_ENV_NAME: dev
+    - if: $CI_COMMIT_BRANCH == "stage"
+      variables: 
+        DEPLOYMENT_ENV_NAME: stg
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables: 
+        DEPLOYMENT_ENV_NAME: prod
+    - when: never
+    - allow_failure: false
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1", "us-west-2"]
+  variables:
+    TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_admin"
+    TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
+    TF_VAR_env: $DEPLOYMENT_ENV_NAME
+  script:
+    - gitlab-terraform -version
+    - gitlab-terraform plan -var-file=env/${DEPLOYMENT_ENV_NAME}.tfvars
+    - gitlab-terraform plan-json -var-file=${DEPLOYMENT_ENV_NAME}.tfvars
+    - cp ${TF_ROOT}/plan.cache ${TF_ROOT}/${TF_VAR_region}.plan.cache
+  artifacts:
+    when: always
+    paths:
+      - ${TF_ROOT}/${TF_VAR_region}.plan.cache
+      - ${TF_ROOT}/*.zip
+    reports:
+      terraform: ${TF_ROOT}/plan.json
+
+
+deploy:
+  # only used when setup for OIDC
+  extends: .aws_assume_role
+  dependencies:
+    - plan
+  stage: deploy
+  resource_group: ${TF_STATE_NAME}
+  environment: "${DEPLOYMENT_ENV_NAME}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      variables: 
+        DEPLOYMENT_ENV_NAME: dev
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "stage"
+      variables: 
+        DEPLOYMENT_ENV_NAME: stg
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables: 
+        DEPLOYMENT_ENV_NAME: prod
+      when: manual
+    - when: never
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1", "us-west-2"]
+  variables:
+    TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_admin"
+    TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
+    TF_VAR_env: $DEPLOYMENT_ENV_NAME
+    TF_PLAN_CACHE: ${TF_VAR_region}.plan.cache
+  script:
+    - gitlab-terraform apply
+
+
+destroy:
+  extends: .aws_assume_role
+  stage: cleanup
+  dependencies:
+    - deploy
+  resource_group: ${TF_STATE_NAME}
+  environment: "${DEPLOYMENT_ENV_NAME}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      variables: 
+        DEPLOYMENT_ENV_NAME: dev
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "stage"
+      variables: 
+        DEPLOYMENT_ENV_NAME: stg
+      when: manual
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables: 
+        DEPLOYMENT_ENV_NAME: prod
+      when: manual
+    - when: never
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1", "us-west-2"]
+  variables:
+    TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_instance"
+    TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
+    TF_VAR_env: $DEPLOYMENT_ENV_NAME
+    TF_PLAN_CACHE: ${TF_VAR_region}.plan.cache
+  script:  
+    - gitlab-terraform destroy -var-file=env/${DEPLOYMENT_ENV_NAME}.tfvars
+  when: manual

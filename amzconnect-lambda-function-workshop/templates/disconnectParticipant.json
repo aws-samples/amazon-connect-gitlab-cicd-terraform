@@ -1,0 +1,27 @@
+{
+    "Version": "2019-10-30",
+    "StartAction": "8b3cde35-8b19-412e-a773-f4bab735467b",
+    "Metadata": {
+        "entryPointPosition": {
+            "x": 40,
+            "y": 40
+        },
+        "ActionMetadata": {
+            "8b3cde35-8b19-412e-a773-f4bab735467b": {
+                "position": {
+                    "x": 145.6,
+                    "y": 33.6
+                }
+            }
+        },
+        "Annotations": []
+    },
+    "Actions": [
+        {
+            "Parameters": {},
+            "Identifier": "8b3cde35-8b19-412e-a773-f4bab735467b",
+            "Type": "DisconnectParticipant",
+            "Transitions": {}
+        }
+    ]
+}
