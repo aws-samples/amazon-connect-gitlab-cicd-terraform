@@ -5,7 +5,7 @@ module "amazon_connect" {
   # version = ">= 0.0.1"
 
   # Instance
-  instance_alias                     = join("-", [var.ivr_id, var.env, local.region_shortnames[var.region], var.instance_alias])
+  instance_alias                     = join("-", [var.ivr_id, var.env, local.region_shortnames[var.region], var.instance_alias, data.aws_caller_identity.current.account_id])
   instance_identity_management_type  = "CONNECT_MANAGED"
   instance_inbound_calls_enabled     = true
   instance_outbound_calls_enabled    = true

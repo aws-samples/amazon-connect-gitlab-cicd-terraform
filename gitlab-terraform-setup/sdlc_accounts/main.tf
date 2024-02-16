@@ -68,6 +68,7 @@ resource "aws_iam_policy" "power_user_policy" {
           "iam:ListRoles",
           "iam:DeleteRole",
           "iam:TagPolicy",
+          "iam:TagRole",
           "iam:CreatePolicy",
           "iam:ListPolicyVersions",
           "iam:UntagPolicy",
@@ -80,6 +81,13 @@ resource "aws_iam_policy" "power_user_policy" {
         ]
         Effect   = "Allow"
         Resource = "*"
+      },
+      {
+        Action = [
+          "iam:CreateServiceLinkedRole"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:iam::*:role/aws-service-role/connect.amazonaws.com/*"
       }
     ]
   })

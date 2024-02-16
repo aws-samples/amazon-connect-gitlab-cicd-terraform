@@ -80,7 +80,7 @@ resource "aws_s3_bucket" "this" {
   # checkov:skip=CKV_AWS_144 Ensure that S3 bucket has cross-region replication enabled
   # checkov:skip=CKV2_AWS_61 Ensure that an S3 bucket has a lifecycle configuration
   force_destroy = true
-  bucket        = join("-", [var.ivr_id, var.env, local.region_shortnames[var.region], var.instance_alias])
+  bucket        = join("-", [var.ivr_id, var.env, local.region_shortnames[var.region], var.instance_alias, data.aws_caller_identity.current.account_id])
 }
 
 

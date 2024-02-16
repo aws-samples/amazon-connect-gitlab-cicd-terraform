@@ -1,6 +1,0 @@
-terraform.tfvars
-.terraform/*
-terraform.tfstate*
-
-# Local .terraform directories
-**/.terraform/*
