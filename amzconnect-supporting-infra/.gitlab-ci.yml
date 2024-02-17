@@ -177,7 +177,7 @@ destroy:
     matrix:
       - TF_VAR_region: ["us-east-1", "us-west-2"]
   variables:
-    TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_instance"
+    TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_infra"
     TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
     TF_VAR_env: $DEPLOYMENT_ENV_NAME
     TF_PLAN_CACHE: ${TF_VAR_region}.plan.cache

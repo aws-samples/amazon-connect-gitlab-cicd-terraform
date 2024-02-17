@@ -9,8 +9,8 @@ module "lambda_provisioner_function" {
   # checkov:skip=CKV_AWS_258 Ensure that Lambda function URLs AuthType is not None
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=c173c27fb57969da85967f2896b858c4654b0bba"
 
-  function_name = "${var.env}_${local.region_shortnames[var.region]}_callflow_provisioner_workshop2"
-  description   = "${var.env}_${local.region_shortnames[var.region]}_callflow_provisioner_workshop2"
+  function_name = "${var.env}_${local.region_shortnames[var.region]}_callflow_provisioner_workshop"
+  description   = "${var.env}_${local.region_shortnames[var.region]}_callflow_provisioner_workshop"
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   publish       = true
@@ -112,13 +112,13 @@ module "lambda_function" {
   # checkov:skip=CKV_AWS_258 Ensure that Lambda function URLs AuthType is not None
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=c173c27fb57969da85967f2896b858c4654b0bba"
 
-  function_name = "${var.capability_id}-exampleFunction2"
+  function_name = "${var.capability_id}-exampleFunction"
   handler       = "index.handler"
   runtime       = "nodejs18.x"
   publish       = true
   # Note: By default this module will create a role with the same name of the function. We want to keep the function name the same
   # across regions for usage within contact flow, however roles are global, so we are adding the region name to end of role.
-  role_name = "${var.capability_id}-exampleFunction2-${local.region_shortnames[var.region]}"
+  role_name = "${var.capability_id}-exampleFunction-${local.region_shortnames[var.region]}"
 
   create_package         = false
   local_existing_package = "${path.module}/exampleFunction.zip"

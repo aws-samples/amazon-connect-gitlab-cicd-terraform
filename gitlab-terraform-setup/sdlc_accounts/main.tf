@@ -76,6 +76,7 @@ resource "aws_iam_policy" "power_user_policy" {
           "iam:GetRolePolicy",
           "iam:DeletePolicyVersion",
           "iam:SetDefaultPolicyVersion",
+          "iam:ListInstanceProfilesForRole",
           "organizations:DescribeOrganization",
           "account:ListRegions"
         ]

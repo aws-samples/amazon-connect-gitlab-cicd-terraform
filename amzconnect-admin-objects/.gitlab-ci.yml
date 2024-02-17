@@ -76,24 +76,6 @@ checkov:
       --output text))
     - aws sts get-caller-identity
 
-.aws_assume_role:
-  id_tokens:
-    MY_OIDC_TOKEN:
-      aud: https://gitlab.example.com
-  before_script:
-    - apk add aws-cli
-    - mkdir -p ~/.aws
-    - echo "${MY_OIDC_TOKEN}" > /tmp/web_identity_token
-    - echo -e "[profile oidc]\nrole_arn=${DEVOPS_ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
-    - >
-      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
-      $(aws sts assume-role
-      --role-arn "${AWS_CREDS_TARGET_ROLE}"
-      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
-      --duration-seconds 3600
-      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
-      --output text))
-    - aws sts get-caller-identity
 
 plan:
   stage: plan
@@ -195,7 +177,7 @@ destroy:
     matrix:
       - TF_VAR_region: ["us-east-1", "us-west-2"]
   variables:
-    TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_instance"
+    TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_admin"
     TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
     TF_VAR_env: $DEPLOYMENT_ENV_NAME
     TF_PLAN_CACHE: ${TF_VAR_region}.plan.cache

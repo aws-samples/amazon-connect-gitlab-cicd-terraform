@@ -3,7 +3,7 @@ module "s3_bucket" {
   # checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
   source = "terraform-aws-modules/s3-bucket/aws"
 
-  bucket = "${var.env}-${var.region}-s3-connect-cicd-terraform-workshop"
+  bucket = "${var.env}-${var.region}-s3-connect-cicd-terraform-workshop-${data.aws_caller_identity.current.account_id}"
   acl    = "private"
 
   control_object_ownership = true
