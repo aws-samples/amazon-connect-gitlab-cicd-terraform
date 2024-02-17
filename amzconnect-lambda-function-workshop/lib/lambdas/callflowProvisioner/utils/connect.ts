@@ -1,13 +1,10 @@
 import {
     ConnectClient,
     ContactFlow,
-    ContactFlowModule,
     ContactFlowModuleSummary,
     ContactFlowSummary,
     CreateContactFlowCommand,
     CreateContactFlowModuleCommand,
-    DescribeContactFlowCommand,
-    DescribeContactFlowCommandOutput,
     ListContactFlowsCommand,
     ListContactFlowModulesCommand,
     ListPromptsCommand,
@@ -152,11 +149,6 @@ export async function listQueues(INSTANCE_ID: string) {
             queues.push(...data);
         } while(nextToken);
         logger.info(`Connect.listQueues: Found ${queues.length}`);
-        // const lqCommand = new ListQueuesCommand({
-        //     InstanceId: INSTANCE_ID,
-        // });
-        // const lqResp = await connectClient.send(lqCommand);
-        // console.log(lqResp);
         for (const p of queues) {
             localMap.set(p.Name, p.Arn);
         }
@@ -182,10 +174,6 @@ export async function listPrompts(INSTANCE_ID: string) {
             prompts.push(...data);
         } while(nextToken);
         logger.info(`Connect.listQueues: Found ${prompts.length}`);
-        // const lpCommand = new ListPromptsCommand({
-        //     InstanceId: INSTANCE_ID,
-        // });
-        // const lpResp = await connectClient.send(lpCommand);
         for (const p of prompts) {
             let stripName = p.Name.split(".");
             localMap.set(stripName[0], p.Arn);

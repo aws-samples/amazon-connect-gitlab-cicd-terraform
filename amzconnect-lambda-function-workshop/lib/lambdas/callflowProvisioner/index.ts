@@ -31,9 +31,7 @@ import {
     buildTotalConnectObject,
     handleContactFlowReplacements,
     handleContactFlowModuleReplacements,
-    // updateMappingObject,
-    connectGetFullInventory,
-    // getCapabilityIncludes
+    connectGetFullInventory
 } from "./managers";
 
 
@@ -78,30 +76,9 @@ const lambdaHandler = async (
         capability_id: `${CAPABILITY_ID}`,
         ivr_id: `${IVR_ID}`
     })
-    // const MAPPING_FN_ARN = await getParameter(
-    //     `${SSM_PREFIX}/MappingFunctionArn`,
-    // );
-    // const MAPPING_FN_NAME = await getParameter(
-    //     `${SSM_PREFIX}/MappingFunctionName`,
-    // );
     const INSTANCE_ID = await getParameter(
         `${SSM_PREFIX}/amz-connect-instance-id`,
     );
-    // let phoneMapConfig = ""
-    // // * Get contact flows, configurations and contact flow slugs from S3   
-    // try {
-    //     phoneMapConfig = await readTextFile(
-    //         bucketName,
-    //         `${IVR_ID}/config/phoneMap.json`,
-    //     );
-    // } catch (error) {logger.info("phoneMapConfig does not exist. skipping ...")}
-    // let capabilityIncludes = ""
-    // try {
-    //     capabilityIncludes = await readTextFile(
-    //         bucketName,
-    //         `config/${CAPABILITY_ID}_includes.json`,
-    //     );
-    // } catch (error) {logger.info(`${CAPABILITY_ID}_includes.json does not exist. skipping ...`)}
     const _disconnectParticipant = await readTextFile(
         bucketName,
         `templates/disconnectParticipant.json`,
@@ -213,16 +190,6 @@ const lambdaHandler = async (
     )
     logger.info("connectObjMapTotal", {log_detail: Object.fromEntries(connectObjMapTotal)})
 
-    // Get list of includes that need to be added to connect object
-    // const CAPABILITY_INCLUDES = await getCapabilityIncludes(INSTANCE_ID, connectObjMapTotal, capabilityIncludes)
-    // let CAPABILITY_INCLUDES: Map<string, string> 
-    // if (capabilityIncludes != "") {
-    //     CAPABILITY_INCLUDES = await getCapabilityIncludes(INSTANCE_ID, connectObjMapTotal, capabilityIncludes)
-    //     logger.info(`CAPABILITY_INCLUDES.size is ${CAPABILITY_INCLUDES.size}`)
-    // } else {
-    //     logger.info(`CAPABILITY_INCLUDES is empty`)
-    // }
-    
     const connectObjMap = await buildConnectObject(
         INSTANCE_ID, 
         NAMING_PREFIX,
@@ -273,11 +240,6 @@ const lambdaHandler = async (
         connectObject,
         connectObjMapTotal
     )
-  
-    // await updateMappingObject(
-    //     MAPPING_FN_NAME,
-    //     connectObject
-    // )
 
     logger.info(`Provisioning Complete for ${CAPABILITY_ID} on ${IVR_ID}`);
     metrics.addMetric("Successful Invocation", MetricUnits.Count, 1);

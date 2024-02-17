@@ -44,9 +44,6 @@ export async function listLexBots(INSTANCE_ID: string, NAMING_PREFIX: string, CA
         logger.info(`Lex.listBots: Found ${bots.length}`);
 
         //* Get list of bots and filter them by name
-        // Might need to add functionality similar to list Lambda Functions where 
-        // all bot names necessary. The retrieval of all aliases will be 
-        // computationally painful.
 
         const lexRespFilter = bots.filter(
             (o) =>

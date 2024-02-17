@@ -1,13 +1,8 @@
 import {
-    UpdateFunctionCodeCommand,
-} from "@aws-sdk/client-lambda";
-import { Upload } from "@aws-sdk/lib-storage";
-import {
     ContactFlow,
     ContactFlowModule,
     ContactFlowSummary,
     ContactFlowModuleSummary,
-    ContactFlowModuleState,
     UpdateContactFlowMetadataCommand
 } from "@aws-sdk/client-connect";
 import { Logger } from "@aws-lambda-powertools/logger";
@@ -25,7 +20,6 @@ import {
 } from "./utils/connect";
 import {
     mergeContactFlowArrays,
-    // modifyResiliencyToQueues,
     reMapObjectToFlowAtt
 } from "./utils/contactflow";
 import {
@@ -36,14 +30,11 @@ import {
     FunctionReplacer,
     FlowReplacer
 } from "./utils/replacements"
-import { createFile, validateFlowVars } from "./utils/misc";
+import { validateFlowVars } from "./utils/misc";
 import { listLexBots } from "./utils/lex";
 import { listLambdaFunctions } from "./utils/lambda";
-import { readTextFile } from "./utils/s3";
-import { getConnectClient, getS3Client, getLambdaClient } from "./utils/aws";
-import { js_beautify } from "js-beautify";
-import fs from "fs";
-import JSZip, { forEach } from "jszip";
+import { getConnectClient} from "./utils/aws";
+
 
 
 const region = process.env.AWS_REGION;
@@ -668,109 +659,4 @@ export async function handleContactFlowModuleReplacements(
         throw error;
     }
 }
-
-// export async function updateMappingObject(
-//     MAPPING_FN_NAME: string,
-//     connectObject: any,
-// ){
-//     const mapperFile = [];
-//     mapperFile.push(`exports.handler =  async (_event) => {`);
-//     mapperFile.push(`return`);
-//     mapperFile.push(JSON.stringify(connectObject));
-//     mapperFile.push(`}`);
-//     createFile(mapperFile);
-
-//     //* Zip Mapping Function index.js file and upload to S3.
-
-//     const readFile = fs.readFileSync("/tmp/mappingFile.js", "utf8");
-//     const beautifiedCode = js_beautify(readFile, {
-//         indent_size: 2,
-//         space_in_empty_paren: true,
-//     });
-//     logger.info("Managers.updateMappingObject: beautified: ");
-//     console.log(beautifiedCode)
-//     const zip = new JSZip();
-//     try {
-//         zip.file("index.js", beautifiedCode);
-//         zip.generateNodeStream({ type: "nodebuffer", streamFiles: true })
-//             .pipe(fs.createWriteStream("/tmp/index.zip"))
-//             .on("finish", function () {
-//                 console.log("zip created");
-//             });
-//     } catch (error) {
-//         logger.error("Managers.updateMappingObject: Error zipping function", error as Error);
-//         throw error;
-//     }
-
-//     const fileStream = fs.createReadStream(`/tmp/index.zip`);
-
-//     try {
-//         const data = new Upload({
-//             client: getS3Client(region),
-//             params: {
-//                 Bucket: bucketName,
-//                 Key: "index.zip",
-//                 Body: fileStream,
-//             },
-//         });
-
-//         data.on("httpUploadProgress", (progress: any) => {
-//             console.log(progress);
-//         });
-
-//         await data.done();
-//     } catch (e) {
-//         console.log(e);
-//     }
-
-//     logger.info(`Managers.updateMappingObject: Function to be updated: ${MAPPING_FN_NAME}`);
-
-//     try {
-//         const lambdaCommand = new UpdateFunctionCodeCommand({
-//             FunctionName: MAPPING_FN_NAME,
-//             Publish: false,
-//             S3Bucket: bucketName,
-//             S3Key: "index.zip",
-//         });
-
-//         // eslint-disable-line @typescript-eslint/no-unused-vars
-//         const lambdaResponse: any = await getLambdaClient(region).send(lambdaCommand);
-//         logger.info(`Managers.updateMappingObject: UpdateFunction response`, {log_detail: lambdaResponse});
-//     } catch (error) {
-//         logger.error("Error updating Function", error as Error);
-//         throw error;
-//     }
-// }
-
-// export async function getCapabilityIncludes(INSTANCE_ID: string, connectObjMapTotal: Map<any, any>, capabilityIncludes: string) {
-//     // This function is creating a map of all included objects per environment from the capability includes file. 
-//     // With lambdas it is creating a kv pair with the lambdaBaseName and the arn of the full function name in that env.
-//     // This allows the lambdaBaseName to stay consistent across environments, ivr's
-//     let includes = JSON.parse(capabilityIncludes);
-//     const includesMap = new Map();
-//     let functionIncludes = Object.keys(includes.functions)
-//     for (let functionBaseName in functionIncludes) {
-//         let fxn = Object.keys(includes.functions[`${functionIncludes[functionBaseName]}`][`${region}`][`${env}`])
-//         for (let f in fxn) {
-//             let v = connectObjMapTotal.get(fxn[f])
-//             if (v == undefined) {
-//                 logger.error(`managers.getCapabilityIncludes: ${fxn[f]} does not a exist on instance. Check capability includes file`)
-//                 continue
-//             }
-//             // includesMap.set(fxn[f], v)
-//             includesMap.set(functionIncludes[functionBaseName], v)
-//             logger.info("managers.getCapabilityIncludes: ", {f: fxn[f], v: v, functionBaseName: functionIncludes[functionBaseName]})
-//         }   
-//     }
-//     let obj = Object.values(includes.connect_objects)
-//     logger.debug("managers.getCapabilityIncludes: ", {obj: obj})
-//     for (let o in obj) {
-//         let v = connectObjMapTotal.get(obj[o])
-//         logger.debug("managers.getCapabilityIncludes: ", { o: obj[o], v: v})
-//         includesMap.set(obj[o], v)
-//     }
-//     logger.info("managers.getCapabilityIncludes: ", {newObject: Object.fromEntries(includesMap)})
-
-//     return includesMap
-// }
 
