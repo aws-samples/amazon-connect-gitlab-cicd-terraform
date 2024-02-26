@@ -1,14 +1,14 @@
-# Amazon Connect Automation and CICD with Terraform and Gitlab
+# Amazon Connect Automation and CICD with Terraform and GitLab
 ## Section 1 - Solution Overview
 
-This workshop uses Gitlab CI/CD for CI/CD and build processes. Terraform is used to deploy Amazon Connect as well as other associated components. The Lambda function code is written in Typescript. This solution has Multi-Region support, which can be tailored for [Amazon Connect Global Resiliency](https://docs.aws.amazon.com/connect/latest/adminguide/setup-connect-global-resiliency.html) .
+This workshop uses GitLab CI/CD for CI/CD and build processes. Terraform is used to deploy Amazon Connect as well as other associated components. The Lambda function code is written in Typescript. This solution has Multi-Region support, which can be tailored for [Amazon Connect Global Resiliency](https://docs.aws.amazon.com/connect/latest/adminguide/setup-connect-global-resiliency.html).
 
 #### CI/CD Architecture
 
-The pipelines that deploy Amazon Connect and other associated infrastructure will run in Gitlab CI/CD. Terraform will assume a role in the SDLC (i.e. develop, stage, main) accounts and provision resources directly into them. Each of the pipelines is set up in a matrix format to deploy to both us-east-1 and us-west-2 (although any pair of regions that [supports](https://docs.aws.amazon.com/connect/latest/adminguide/regions.html) Amazon Connect will work). Gitlab itself can be setup to be used with a standalone instance that exists already or by using the free tier of Gitlab.com
+The pipelines that deploy Amazon Connect and other associated infrastructure will run in GitLab CI/CD. Terraform will assume a role in the SDLC (i.e. develop, stage, main) accounts and provision resources directly into them. Each of the pipelines is set up in a matrix format to deploy to both us-east-1 and us-west-2 (although any pair of regions that [supports](https://docs.aws.amazon.com/connect/latest/adminguide/regions.html) Amazon Connect will work). GitLab itself can be setup to be used with a standalone instance that exists already or by using the free tier of GitLab.com
 
 > [!NOTE]
-> While this code sample highlights how to use Gitlab CICD with OIDC, a similar architecture could be achieved using [Github Actions with OIDC as well](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services). 
+> While this code sample highlights how to use GitLab CICD with OIDC, a similar architecture could be achieved using [Github Actions with OIDC as well](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services). 
 
 ![[tfcicd-gitlab.png]](images/tfcicd-gitlab.png)
 
@@ -52,37 +52,37 @@ Once the design of the flow is complete and published, the developer exports it 
 }
 ```
 
-# Section 2 - Configuring Gitlab
-### Gitlab
+# Section 2 - Configuring GitLab
+### GitLab
 
-This section will focus on the steps necessary to get Gitlab CI/CD configured to be able to deploy resources on AWS. For the purposes of this workshop, it is going to be assumed that either a standalone Gitlab instance is already configured and available to be used, or one can configure a free SaaS account at Gitlab.com.
+This section will focus on the steps necessary to get GitLab CI/CD configured to be able to deploy resources on AWS. For the purposes of this workshop, it is going to be assumed that either a standalone GitLab instance is already configured and available to be used, or one can configure a free SaaS account at GitLab.com.
 
 ![[tfcicd-oidc.png]](images/tfcicd-oidc.png)
-#### Gitlab SaaS with OIDC
+#### GitLab SaaS with OIDC
 
-This process allows you to securely deploy infrastructure and apps to multiple AWS accounts from your Gitlab CI/CD, without having to store long lived AWS credentials in Gitlab. The OIDC integration handles authenticating your pipelines to AWS and assuming the right role for each environment.
+This process allows you to securely deploy infrastructure and apps to multiple AWS accounts from your GitLab CI/CD, without having to store long lived AWS credentials in GitLab. The OIDC integration handles authenticating your pipelines to AWS and assuming the right role for each environment.
 
 
-We will start with configuring a free account on Gitlab.com and then show the differences necessary to configure roles to be used with an on-premises Gitlab system.
+We will start with configuring a free account on GitLab.com and then show the differences necessary to configure roles to be used with an on-premises GitLab system.
 
 ![[tfcicd-gitlab-overview.png]](images/tfcicd-gitlab-overview.png)
 
 
 https://about.gitlab.com/pricing/
 
-Create an account with Gitlab and then create a project
+Create an account with GitLab and then create a project
 
 ![[tfcicd-project.png]](images/tfcicd-project.png)
 
-An easy way to connect into Gitlab is adding an SSH key to your to profile so that you don't need to use a password to authenticate every time. To do so, follow these [instructions](https://docs.gitlab.com/ee/user/ssh.html)
+An easy way to connect into GitLab is adding an SSH key to your to profile so that you don't need to use a password to authenticate every time. To do so, follow these [instructions](https://docs.gitlab.com/ee/user/ssh.html)
 
-- Clone or fork the repo from Github. We will be using terraform locally to setup Gitlab in the following steps
+- Clone or fork the repo from Github. We will be using terraform locally to setup GitLab in the following steps
 - Navigate to the gitlab-terraform-setup/devops_account directory
 - We will use terraform to setup an OIDC connection  to a shared devops or tooling account. For additional context, please see this [documentation](https://docs.gitlab.com/ee/ci/cloud_services/aws/) What this process is going to create is an OpenID Connect identity provider in this account, a role with policies that can assume other roles in whatever SDLC accounts (i.e. develop, stage, prod) you would like to use for this process.
 
 #### Steps for setting up devops account:
 
-- Modify the devops.tfvars file to account for your specific repository as well as adding the roles that a new role will be able to assume. We are going to create these  roles in a future step but for the moment, we just need the account numbers of the accounts that will be used. The configuration below will secure the Gitlab connection to be used specifically via the gitlab repo on the specified brances of develop, stage, and prod.
+- Modify the devops.tfvars file to account for your specific repository as well as adding the roles that a new role will be able to assume. We are going to create these  roles in a future step but for the moment, we just need the account numbers of the accounts that will be used. The configuration below will secure the GitLab connection to be used specifically via the gitlab repo on the specified brances of develop, stage, and prod.
 - 
 ```devops.tfvars
 aws_region = "us-east-1"
@@ -127,11 +127,11 @@ terraform apply -var-file tf.tfvars
 > If configuring multiple accounts, delete the terraform.tfstate file that will be created into your sdlc_accounts folder before moving to the next one. 
 
 
-#### Adding Gitlab CICD variables into settings
+#### Adding GitLab CICD variables into settings
 
-We now need to add variables into Gitlab that will automatically be inserted into the environment when our pipelines run.
+We now need to add variables into GitLab that will automatically be inserted into the environment when our pipelines run.
 
-- After logging into your Gitlab account, Navigate to Settings > CI/CD
+- After logging into your GitLab account, Navigate to Settings > CI/CD
 
 ![[tfcicd-settings.png]](images/tfcicd-settings.png)
 
@@ -159,8 +159,8 @@ At the end of this step, the CICD variables should look like the following image
 ![[tfcicd-var5.png]](images/tfcicd-var5.png)
 #### Testing the solution
 
-- Clone your Gitlab repo to your local machine (or Cloud9).
-- Copy the downloaded repository contents into new Gitlab repo.
+- Clone your GitLab repo to your local machine (or Cloud9).
+- Copy the downloaded repository contents into new GitLab repo.
 - Add the files, commit them, and perform a git push up to the repo.```
 
 ```
@@ -169,7 +169,7 @@ git commit -m "test"
 git push origin main
 ```
 
-In the Gitlab console, navigate to Build > Pipelines and select the correct job.
+In the GitLab console, navigate to Build > Pipelines and select the correct job.
 
 ![[tfcicd-pl1.png]](images/tfcicd-pl1.png)
 
@@ -177,33 +177,32 @@ Double click into the assume-role-test, if successful, it should look similar to
 
 ![[tfcicd-tfsetup.png]](images/tfcicd-tfsetup.png)
 
-#### Configuring SDLC roles for use with standalone Gitlab system
+#### Configuring SDLC roles for use with standalone GitLab system
 
-This section details the steps necessary to deploy when using an internal standalone Gitlab instance. If using OIDC, it can be skipped.
+This section details the steps necessary to deploy when using an internal standalone GitLab instance. If using OIDC, it can be skipped.
 
-If this solution is being used with a standalone version of Gitlab, it is assumed that there is already an existing devops account configured for use that takes the place of the account configured from the devops_account section. Work with your Gitlab admins to get the arn of that role and add it in place of the DEVOPS_ROLE_ARN in the SDLC instructions. There might be additional configuration (i.e. conditions) that are necessary to add to the assume role policy so that it will work within your environment.
+If this solution is being used with a standalone version of GitLab, it is assumed that there is already an existing devops account configured for use that takes the place of the account configured from the devops_account section. Work with your GitLab admins to get the arn of that role and add it in place of the DEVOPS_ROLE_ARN in the SDLC instructions. There might be additional configurations (i.e. conditions) that are necessary to add to the assume role policy so that it will work within your environment.
 
-We still need to create the Gitlab variables as specified from the OIDC section above, however we will only need some of the variables which include the roles to assume in the SDLC accounts and the default region:
+We still need to create the GitLab variables as specified in the OIDC section above, however, we will only need some of the variables which include the roles to assume in the SDLC accounts and the default region:
 
 ![[tfcicd-gitlab-onprem.png]](images/tfcicd-gitlab-onprem.png)
 
-##### Additional Resources about OIDC and Gitlab
+##### Additional Resources about OIDC and GitLab
 
-This youtube link is a great video on securing Gitlab CI/CD with OIDC
+This Youtube link is a great video on securing GitLab CI/CD with OIDC
 https://www.youtube.com/watch?v=xWQGADDVn8g
 
-The section on using OIDC with Gitlab is a modified version of the content located in this blog. Please check it out. - https://aws.amazon.com/blogs/apn/setting-up-openid-connect-with-gitlab-ci-cd-to-provide-secure-access-to-environments-in-aws-accounts/
+The section on using OIDC with GitLab is a modified version of the content located in this blog. Please check it out. - https://aws.amazon.com/blogs/apn/setting-up-openid-connect-with-gitlab-ci-cd-to-provide-secure-access-to-environments-in-aws-accounts/
 
 # Section 3 - Running Pipelines
-#### Running Gitlab Pipelines
+#### Running GitLab Pipelines
 
-- We now have functional permissions connecting Gitlab and AWS and can begin to deploy the Amazon Connect instance.
-- If you wish to follow a standard SDLC deployment using develop, stage, and main branches, Create a new develop branch
-- 
+- We now have functional permissions connecting GitLab and AWS and can begin to deploy the Amazon Connect instance.
+- If you wish to follow a standard SDLC deployment using develop, stage, and main branches, Create a new develop branch.
 ```cli
 git checkout -b develop
 ```
-- Otherwise just continue on the main branch.
+- Otherwise, just continue on the main branch.
 - Navigate to the .gitlab-ci.yaml file in the root directory and comment out the assume role section and uncomment the remainder of gitlab-ci.yaml file. 
 - Add the files, commit them, and perform a git push up to the repo.```
 
@@ -213,7 +212,7 @@ git commit -m "initial"
 git push origin develop
 ```
 
-In the Gitlab console, navigate to Build > Pipelines and select the running job
+In the GitLab console, navigate to Build > Pipelines and select the running job
 It should look similar to the image below (which has connect-instance expanded):
 - 
 ![[tfcicd-pl2.png]](images/tfcicd-pl2.png)
@@ -229,7 +228,7 @@ The reason that four of the pipelines have failed is that they reference ssm par
 #### Connect-Instance
 
 - First, examine the terraform files to see what is being provisioned
-- Gitlab can be used as a repository for [state files](https://docs.gitlab.com/ee/user/infrastructure/iac/terraform_state.html), so if we look at the backend.tf file we will see the configuration necessary.
+- GitLab can be used as a repository for [state files](https://docs.gitlab.com/ee/user/infrastructure/iac/terraform_state.html), so if we look at the backend.tf file we will see the configuration necessary.
 ```terraform
 terraform {
   backend "http" {
@@ -258,9 +257,12 @@ At bottom of job page, you should see
 ![[tfcicd-apply.png]](images/tfcicd-apply.png)
 
 #### Admin-Objects
-- This folder is using the same Amazon Connect module that we just used in the prior step, however we are separating out the components that could frequently be updated. The items that will be provisioned as part of this process are Hours of Operations, Queues, Quick Connects, Routing Profiles, Security Profiles Users and Potentially Contact Lens Vocabularies. We will also deploy a single contact flow to which the Quick Connects will be attached.
+- This folder uses the same Amazon Connect module that we just used in the prior step, however we are separating the components that could frequently be updated. The items that will be provisioned as part of this process are Hours of Operations, Queues, Quick Connects, Routing Profiles, Security Profiles, Users, and Potentially Contact Lens Vocabularies. We will also deploy a single contact flow to which the Quick Connects will be attached.
 - All of the configuration for each of these components is kept in individually named files that have the local variables.
 - Re-run Terraform Plan by clicking the Retry button for both regions and then Deploy exactly as we just did in the step above.
+
+> [!NOTE]
+> While this guide attempts to show how the items above can be created using CI/CD, in reality users are most likely going to be implemented outside of Amazon Connect using an SSO federation. Also, a CI/CD pipeline might not be the best solution for updates to things that potentially change frequently throughout the day such as routing profile adjustments.
 
 ![[tfcicd-pl4.png]](images/tfcicd-pl4.png)
 
@@ -380,7 +382,7 @@ git checkout main
 
 To clean up your resources, complete the following steps:
 
-Go into each pipeline start a terraform destroy.
+Go into each pipeline initiate a terraform destroy. Destroy the resources from the lambda pipeline first, followed by the supporting infra pipelines next. For the supporting infra pipeline you will manually need to empty/delete the buckets created first or it will not complete. After they are removed start the destroy job on the connect-instance pipeline and it will also destroy all components within the admin-objects and the contact-flows pipelines.
 
 ![[tfcicd-cleanup.png]](images/tfcicd-cleanup.png)
 If for some reason, the destroy will not run, try starting a new manual job by clicking the Run pipeline button. 
@@ -391,7 +393,7 @@ Presumably there will be no new changes to the plan/apply and then the destroy c
 
 ![[tfcicd-clean3.png]](images/tfcicd-clean3.png)
 
-Destroy the lambda and supporting infra pipelines first. After they are removed start the destroy job on the connect-instance pipeline and it will also destroy all components within the admin-objects and the contact-flows pipelines. 
+ 
 
 # Section 5 - Conclusion
 

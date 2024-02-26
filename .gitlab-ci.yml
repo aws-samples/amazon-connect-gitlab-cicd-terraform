@@ -12,14 +12,14 @@ assume-role:
   before_script:
     - mkdir -p ~/.aws
     - echo "${MY_OIDC_TOKEN}" > /tmp/web_identity_token
-    - echo -e "[profile oidc]\nrole_arn=${ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
+    - echo -e "[profile oidc]\nrole_arn=${DEVOPS_ROLE_ARN}\nweb_identity_token_file=/tmp/web_identity_token" > ~/.aws/config
+    - aws sts get-caller-identity
   script:
     - >
       export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
       $(aws sts assume-role-with-web-identity
-      --role-arn ${ROLE_ARN}
+      --role-arn ${AWS_CREDS_TARGET_ROLE}
       --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
-      --web-identity-token ${MY_OIDC_TOKEN}
       --duration-seconds 3600
       --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
       --output text))
