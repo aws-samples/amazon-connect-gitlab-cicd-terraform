@@ -96,7 +96,7 @@ sdlc_roles  = [
 ]
 ```
 
-- export your credentials into the environment
+- [Set up your AWS credentials for the environment](https://registry.terraform.io/providers/hashicorp/aws/2.34.0/docs#environment-variables).
 - Run terraform init, plan, and apply using the tfvars file as input as shown below. After the apply, note the output of the ROLE_ARN as we will need it to configure the assume policy on the deployment  roles. 
 
 ```
