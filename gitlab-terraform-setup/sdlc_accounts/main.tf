@@ -69,6 +69,7 @@ resource "aws_iam_policy" "power_user_policy" {
           "iam:DeleteRole",
           "iam:TagPolicy",
           "iam:TagRole",
+          "iam:UntagRole",
           "iam:CreatePolicy",
           "iam:ListPolicyVersions",
           "iam:UntagPolicy",

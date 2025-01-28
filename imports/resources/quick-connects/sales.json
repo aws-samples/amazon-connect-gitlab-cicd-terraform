@@ -1,0 +1,6 @@
+{
+  "Name": "sales",
+  "Type": "QUEUE",
+  "Queue": "sales",
+  "Flow": "acme_queue_transfer_AUTO"
+}

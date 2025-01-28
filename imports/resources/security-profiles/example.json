@@ -1,0 +1,24 @@
+{
+  "Name": "example",
+  "Description": "Example security profile",
+  "Tags": {
+    "repository": "connect-cicd-terraform/amzconnect-admin-objects"
+  },
+  "Permissions": [
+    "AccessMetrics.Dashboards.Access",
+    "AccessMetrics.HistoricalMetrics.Access",
+    "AccessMetrics.RealTimeMetrics.Access",
+    "BasicAgentAccess",
+    "ContentManagement.View",
+    "CustomViews.Access",
+    "CustomerProfiles.Create",
+    "CustomerProfiles.Edit",
+    "CustomerProfiles.View",
+    "OutboundCallAccess",
+    "RestrictContactAccessByHierarchy.View",
+    "Views.View",
+    "Wisdom.View"
+  ],
+  "TagRestrictedResources": [],
+  "AllowedAccessControlTags": {}
+}

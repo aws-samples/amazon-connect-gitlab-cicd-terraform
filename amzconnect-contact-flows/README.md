@@ -1,22 +1,20 @@
 ## Description
 
-This folder houses all Amazon Connect contact flows.
+This folder contains all Amazon Connect contact flows.
 
 <!-- BEGIN_TF_DOCS -->
 
 ## Requirements
 
-| Name                                                                     | Version   |
-| ------------------------------------------------------------------------ | --------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 1.2    |
-| <a name="requirement_archive"></a> [archive](#requirement_archive)       | ~> 2.4.0  |
-| <a name="requirement_aws"></a> [aws](#requirement_aws)                   | ~> 5.11.0 |
+| Name                                                                     | Version |
+| ------------------------------------------------------------------------ | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 1.7  |
 
 ## Providers
 
-| Name                                             | Version   |
-| ------------------------------------------------ | --------- |
-| <a name="provider_aws"></a> [aws](#provider_aws) | ~> 5.11.0 |
+| Name                                             | Version |
+| ------------------------------------------------ | ------- |
+| <a name="provider_aws"></a> [aws](#provider_aws) | n/a     |
 
 ## Modules
 
@@ -24,14 +22,14 @@ No modules.
 
 ## Resources
 
-| Name                                                                                                                                     | Type        |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [aws_lambda_invocation.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_invocation)              | resource    |
-| [aws_s3_object.contact_flows](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object)                     | resource    |
-| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity)            | data source |
-| [aws_ssm_parameter.amzconnect-instance-id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter)                 | data source |
-| [aws_ssm_parameter.provisioner_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter)        | data source |
+| Name                                                                                                                                                  | Type        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| [aws_connect_contact_flow.contact_flows](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/connect_contact_flow)            | resource    |
+| [aws_connect_contact_flow_module.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/connect_contact_flow_module)       | resource    |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity)                         | data source |
+| [aws_connect_contact_flow.contact_flows](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/connect_contact_flow)         | data source |
+| [aws_connect_contact_flow_module.modules](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/connect_contact_flow_module) | data source |
+| [aws_ssm_parameter.amz-connect-instance-id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter)             | data source |
 
 ## Inputs
 
@@ -45,8 +43,11 @@ No modules.
 
 ## Outputs
 
-| Name                                                                    | Description |
-| ----------------------------------------------------------------------- | ----------- |
-| <a name="output_result_entry"></a> [result_entry](#output_result_entry) | n/a         |
+| Name                                                                                                                             | Description |
+| -------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| <a name="output_contact_flow_module_import_data"></a> [contact_flow_module_import_data](#output_contact_flow_module_import_data) | n/a         |
+| <a name="output_contact_flow_modules"></a> [contact_flow_modules](#output_contact_flow_modules)                                  | n/a         |
+| <a name="output_contact_flows"></a> [contact_flows](#output_contact_flows)                                                       | n/a         |
+| <a name="output_contact_flows_import_data"></a> [contact_flows_import_data](#output_contact_flows_import_data)                   | n/a         |
 
 <!-- END_TF_DOCS -->

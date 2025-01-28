@@ -1,0 +1,18 @@
+{
+  "ACCOUNT": "${ACCT_ID}",
+  "REGION": "${REGION}",
+  "INSTANCE": "${INSTANCE_ID}",
+  "STAGE": "${STAGE}",
+  "FLOW_PREFIX": "${F:",
+  "FLOW_SUFFIX": ":F}",
+  "HOOP_PREFIX": "${H:",
+  "HOOP_SUFFIX": ":H}",
+  "QUEUE_PREFIX": "${Q:",
+  "QUEUE_SUFFIX": ":Q}",
+  "MODULE_PREFIX": "${M:",
+  "MODULE_SUFFIX": ":M}",
+  "PROMPT_PREFIX": "${P:",
+  "PROMPT_SUFFIX": ":P}",
+  "ASSISTANT_PREFIX": "${A:",
+  "ASSISTANT_SUFFIX": ":A}"
+}

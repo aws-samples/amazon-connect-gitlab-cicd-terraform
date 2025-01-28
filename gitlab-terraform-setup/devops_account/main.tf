@@ -81,7 +81,7 @@ resource "aws_iam_role" "gitlab_ci" {
   managed_policy_arns = [aws_iam_policy.sts_policy.arn]
 }
 
-output "ROLE_ARN" {
+output "DEVOPS_ROLE_ARN" {
   description = "Role that needs to be assumed by GitLab CI. We will use this as a GitLab CI Variable"
   value       = aws_iam_role.gitlab_ci.arn
 }

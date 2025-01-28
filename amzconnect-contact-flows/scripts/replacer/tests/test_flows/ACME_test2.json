@@ -1,0 +1,10 @@
+{
+    "Name": "ACME_test2",
+    "Type": "AGENT_HOLD",
+    "Content": {
+        "Version": "2019-10-30",
+        "StartAction": "1a34ecf3-77ff-46a7-b210-38a1a980127b",
+        "Metadata": {},
+        "Actions": []
+        }
+}

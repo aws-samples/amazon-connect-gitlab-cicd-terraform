@@ -1,19 +1,13 @@
 variable "env" {
   type        = string
   description = "The name of the SDLC environment"
-  default     = null
+  default     = "dev"
 }
 
 variable "region" {
   type        = string
   description = "The AWS region to deploy the instance"
-  default     = null
-}
-
-variable "region_shortname" {
-  type        = string
-  description = "The AWS region to deploy the instance"
-  default     = null
+  default     = "us-east-1"
 }
 
 variable "repo" {
@@ -28,8 +22,3 @@ variable "ivr_id" {
   default     = null
 }
 
-variable "instance_alias" {
-  type        = string
-  description = "The name of the functional alias descriptor for the instance"
-  default     = null
-}

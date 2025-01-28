@@ -1,4 +1,2 @@
-env           = "dev"
-repo          = "connect-cicd-terraform/amzconnect-admin-objects"
-ivr_id        = "tfdemo"
-capability_id = "ACME"
+env  = "dev"
+repo = "amazon-connect-gitlab-cicd-terraform/amzconnect-admin-objects"

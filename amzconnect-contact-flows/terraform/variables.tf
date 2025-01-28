@@ -1,11 +1,13 @@
 variable "region" {
-  type = string
+  description = "AWS region to deploy into"
+  type        = string
 }
 
 
 variable "env" {
-  type    = string
-  default = "dev"
+  description = "The environment name for this deployment"
+  type        = string
+  default     = "dev"
 }
 
 
@@ -15,17 +17,13 @@ variable "repo" {
   default     = null
 }
 
-variable "capability_id" {
-  type        = string
-  description = "The name of the capability descriptor for the microservice"
-  default     = null
-}
-
 variable "ivr_id" {
   type        = string
   description = "The name of the functional alias prefix descriptor for the instance"
   default     = null
 }
+
+
 
 
 

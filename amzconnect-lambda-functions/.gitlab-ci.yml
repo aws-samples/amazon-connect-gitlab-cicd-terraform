@@ -1,0 +1,168 @@
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+
+image: amazonlinux:latest
+
+variables:
+  AWS_CREDS_TARGET_ROLE: "${AWS_CREDS_TARGET_ROLE}"
+  AWS_DEFAULT_REGION: us-east-1 # Only used for initial role assumption, has no effect on resource deployment
+  TF_STATE_NAME: "${DEPLOYMENT_ENV_NAME}_${TF_VAR_region}_lambda_workshop"
+  TF_ROOT: amzconnect-lambda-functions/terraform
+  COMMIT_ID: $CI_COMMIT_SHORT_SHA
+
+include: "common.yml"
+
+stages:
+  - validate
+  - test
+  - build
+  - plan
+  - deploy
+  - cleanup
+
+fmt:
+  allow_failure: true
+  stage: validate
+  extends:
+    - .aws_assume_role
+    - .rules
+  script:
+    - !reference [.setup, script]
+    - gitlab-terraform fmt
+
+validate:
+  allow_failure: false
+  stage: validate
+  extends:
+    - .aws_assume_role
+    - .rules
+  script:
+    - !reference [.setup, script]
+    - gitlab-terraform validate
+
+tflint:
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1"]
+
+checkov:
+  stage: test
+  allow_failure: true # True for AutoDevOps compatibility
+  image:
+    name: bridgecrew/checkov:latest
+    entrypoint:
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  rules:
+    - if: $SAST_DISABLED
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      exists:
+        - "**/*.yml"
+        - "**/*.yaml"
+        - "**/*.json"
+        - "**/*.template"
+        - "**/*.tf"
+        - "**/serverless.yml"
+        - "**/serverless.yaml"
+  script:
+    - checkov -d ./amzconnect-lambda-functions/terraform  -o junitxml | tee amzconnect-lambda-functions.test.xml
+  artifacts:
+    reports:
+      junit: "amzconnect-lambda-functions.test.xml"
+    paths:
+      - "amzconnect-lambda-functions.test.xml"
+
+build:
+  stage: build
+  extends:
+    - .aws_assume_role
+    - .setup
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1"] #, "us-west-2"]
+  variables:
+    COMMIT_ID: $CI_COMMIT_SHORT_SHA
+    ACCOUNT: $AWS_ACCOUNT_ID
+  script:
+    - yum install -y npm zip
+    - cd amzconnect-lambda-functions && mkdir terraform/build-artifacts
+    - npm ci
+    - npm run build
+    - rm -rf /tmp/assetzips && mkdir /tmp/assetzips
+    - cd bin/src/lambdas
+    - for dir in *; do cd $dir &&  zip -rq /tmp/assetzips/$dir.zip *&& cd .. ; done
+    - cd ../../../terraform && cp /tmp/assetzips/* build-artifacts
+    - ls -la build-artifacts/
+  artifacts:
+    paths:
+      - ${TF_ROOT}/build-artifacts/*
+      - ${TF_ROOT}/../bin/src/layers/**/*
+      - ${TF_ROOT}/../bin/src/lambdas/**/*
+
+plan:
+  stage: plan
+  extends:
+    - .aws_assume_role
+    - .rules
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1"] #, "us-west-2"]
+  variables:
+    TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
+    TF_VAR_env: $DEPLOYMENT_ENV_NAME
+  script:
+    - !reference [.setup, script]
+    - gitlab-terraform --version
+    - gitlab-terraform plan -var-file=env/${DEPLOYMENT_ENV_NAME}.tfvars
+    - gitlab-terraform plan-json -var-file=env/${DEPLOYMENT_ENV_NAME}.tfvars
+    - cp ${TF_ROOT}/plan.cache ${TF_ROOT}/${TF_VAR_region}.plan.cache
+  artifacts:
+    when: always
+    paths:
+      - ${TF_ROOT}/${TF_VAR_region}.plan.cache
+      - ${TF_ROOT}/*.zip
+      - ${TF_ROOT}/build-artifacts/*
+    reports:
+      terraform: ${TF_ROOT}/plan.json
+
+deploy:
+  extends:
+    - .aws_assume_role
+    - .rules
+  dependencies:
+    - plan
+  stage: deploy
+  when: manual
+  allow_failure: false
+  resource_group: ${TF_STATE_NAME}
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1"] #, "us-west-2"]
+  variables:
+    TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
+    TF_VAR_env: $DEPLOYMENT_ENV_NAME
+    TF_PLAN_CACHE: ${TF_VAR_region}.plan.cache
+  script:
+    - !reference [.setup, script]
+    - gitlab-terraform apply
+
+destroy:
+  extends:
+    - .aws_assume_role
+    - .rules
+  stage: cleanup
+  dependencies:
+    - deploy
+  resource_group: ${TF_STATE_NAME}
+  parallel:
+    matrix:
+      - TF_VAR_region: ["us-east-1"] #, "us-west-2"]
+  variables:
+    TF_VAR_commit_ref: "$CI_COMMIT_SHORT_SHA"
+    TF_VAR_env: $DEPLOYMENT_ENV_NAME
+    TF_PLAN_CACHE: ${TF_VAR_region}.plan.cache
+  script:
+    - !reference [.setup, script]
+    - gitlab-terraform destroy -var-file=env/${DEPLOYMENT_ENV_NAME}.tfvars
+  when: manual

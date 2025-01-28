@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@aws-sdk/client-connect": "^3.734.0",
+    "@aws-sdk/client-lex-models-v2": "^3.734.0",
+    "@aws-sdk/client-sts": "^3.734.0",
+    "@aws-sdk/client-qconnect": "^3.734.0",
+    "prompt-sync": "^4.2.0"
+  }
+}

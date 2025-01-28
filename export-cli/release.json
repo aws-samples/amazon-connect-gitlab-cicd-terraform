@@ -1,0 +1,11 @@
+{
+  "hoop": ["!Basic*", "*"],
+  "queues": ["!Basic*", "*"],
+  "modules": ["!dev*", "*"],
+  "flows": ["!Sample*", "!Default*", "!dev*", "*"],
+  "routing-profiles": ["!Basic*", "*"],
+  "security-profiles": ["!Admin", "!Agent", "*"],
+  "quick-connects": ["*"],
+  "agent-statuses": ["!Available", "!Offline", "*"],
+  "bots": ["*"]
+}

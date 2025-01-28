@@ -1,0 +1,6 @@
+{
+  "Name": "finance",
+  "Type": "QUEUE",
+  "Queue": "finance",
+  "Flow": "acme_queue_transfer_AUTO"
+}

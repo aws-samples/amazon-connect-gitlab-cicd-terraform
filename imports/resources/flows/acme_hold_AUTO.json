@@ -1,0 +1,9 @@
+{
+  "Name": "acme_hold_AUTO",
+  "Type": "AGENT_HOLD",
+  "Content": "{\"Version\":\"2019-10-30\",\"StartAction\":\"1a34ecf3-77ff-46a7-b210-38a1a980127b\",\"Metadata\":{\"entryPointPosition\":{\"x\":74.4,\"y\":20},\"ActionMetadata\":{\"1a34ecf3-77ff-46a7-b210-38a1a980127b\":{\"position\":{\"x\":257.6,\"y\":65.6},\"audio\":[]}}},\"Actions\":[{\"Parameters\":{\"Messages\":[{\"SSML\":\"<speak>You are on hold <break time=\\\"10s\\\"/></speak>\"}]},\"Identifier\":\"1a34ecf3-77ff-46a7-b210-38a1a980127b\",\"Type\":\"MessageParticipantIteratively\",\"Transitions\":{}}]}",
+  "Tags": {
+    "repository": "connect-cicd-terraform/amzconnect-contact-flows"
+  },
+  "Description": "Provisioned via Terraform"
+}

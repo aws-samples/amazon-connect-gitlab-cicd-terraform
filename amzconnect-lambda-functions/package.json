@@ -1,0 +1,29 @@
+{
+  "name": "connect-lambdas",
+  "version": "0.1.0",
+  "bin": {
+    "connect-lambdas": "bin/connect-lambdas.js"
+  },
+  "scripts": {
+    "build": "tsc && npm run copy-dependencies && npm run copy-resources",
+    "watch": "tsc -w",
+    "test": "jest --verbose",
+    "cdk": "cdk",
+    "copy-dependencies": "node ./scripts/copy-dependencies.js",
+    "copy-resources": "node ./scripts/copy-resources.js",
+    "lint": "npx eslint . --ext .ts"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com"
+  },
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {
+    "fs-extra": "10.1.0",
+    "shelljs": "0.8.5",
+    "source-map-support": "0.5.16",
+    "typescript": "5.3.3"
+  }
+}

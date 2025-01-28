@@ -1,0 +1,83 @@
+{
+  "Name": "support",
+  "TimeZone": "US/Eastern",
+  "Config": [
+    {
+      "Day": "WEDNESDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "TUESDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "SUNDAY",
+      "EndTime": {
+        "Hours": 17,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 13,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "MONDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "THURSDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "FRIDAY",
+      "EndTime": {
+        "Hours": 16,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "SUNDAY",
+      "EndTime": {
+        "Hours": 12,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 9,
+        "Minutes": 0
+      }
+    }
+  ]
+}

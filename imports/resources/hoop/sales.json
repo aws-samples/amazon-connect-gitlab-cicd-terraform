@@ -1,0 +1,61 @@
+{
+  "Name": "sales",
+  "TimeZone": "US/Eastern",
+  "Config": [
+    {
+      "Day": "WEDNESDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "TUESDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "FRIDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "MONDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    },
+    {
+      "Day": "THURSDAY",
+      "EndTime": {
+        "Hours": 18,
+        "Minutes": 0
+      },
+      "StartTime": {
+        "Hours": 8,
+        "Minutes": 0
+      }
+    }
+  ]
+}

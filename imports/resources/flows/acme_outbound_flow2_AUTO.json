@@ -1,0 +1,6 @@
+{
+  "Name": "acme_outbound_flow2_AUTO",
+  "Type": "OUTBOUND_WHISPER",
+  "Content": "{\"Version\":\"2019-10-30\",\"StartAction\":\"c2a77b6b-1579-4870-abf1-bf45f7fa6197\",\"Metadata\":{\"entryPointPosition\":{\"x\":74.4,\"y\":20},\"ActionMetadata\":{\"c2a77b6b-1579-4870-abf1-bf45f7fa6197\":{\"position\":{\"x\":224.8,\"y\":34.4}},\"fe0cff31-99e2-4b4a-b1ec-ff7baa711d7b\":{\"position\":{\"x\":508,\"y\":43.2}}},\"Annotations\":[]},\"Actions\":[{\"Parameters\":{\"RecordingBehavior\":{\"RecordedParticipants\":[\"Agent\",\"Customer\"]},\"AnalyticsBehavior\":{\"Enabled\":\"True\",\"AnalyticsLanguage\":\"en-US\",\"AnalyticsRedactionBehavior\":\"Disabled\",\"AnalyticsRedactionResults\":\"RedactedAndOriginal\",\"ChannelConfiguration\":{\"Chat\":{\"AnalyticsModes\":[]},\"Voice\":{\"AnalyticsModes\":[\"PostContact\"]}}}},\"Identifier\":\"c2a77b6b-1579-4870-abf1-bf45f7fa6197\",\"Type\":\"UpdateContactRecordingBehavior\",\"Transitions\":{\"NextAction\":\"fe0cff31-99e2-4b4a-b1ec-ff7baa711d7b\"}},{\"Parameters\":{},\"Identifier\":\"fe0cff31-99e2-4b4a-b1ec-ff7baa711d7b\",\"Type\":\"EndFlowExecution\",\"Transitions\":{}}]}",
+  "Tags": {}
+}

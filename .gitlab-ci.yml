@@ -1,9 +1,10 @@
-# Before script will make a AWS call on our behalf to STS to retrieve temporary credentials: https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#assume-role-with-web-identity 
+# Before script will make a AWS call on our behalf to STS to retrieve temporary credentials: https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#assume-role-with-web-identity
 # The variables "ROLE_ARN" and "AWS_PROFILE" are defined in the project settings.
-# MY_OIDC_TOKEN is defined within the job and is then referenced
-assume-role:
+# MY_OIDC_TOKEN is defined within the job and is then referenced.
+
+assume-role-test:
   environment: dev
-  image: 
+  image:
     name: amazon/aws-cli:latest
     entrypoint: [""]
   id_tokens:
@@ -17,16 +18,15 @@ assume-role:
   script:
     - >
       export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
-      $(aws sts assume-role-with-web-identity
+      $(aws sts assume-role
       --role-arn ${AWS_CREDS_TARGET_ROLE}
       --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
       --duration-seconds 3600
       --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
       --output text))
     - aws sts get-caller-identity
-
-
-
+#
+#
 # stages:
 #   - parent
 
@@ -44,15 +44,24 @@ assume-role:
 #     include: amzconnect-admin-objects/.gitlab-ci.yml
 #     strategy: depend
 #   rules:
-#     - changes: [amzconnect-admin-objects/**/*]
+#     - changes:
+#         [
+#           "amzconnect-admin-objects/**/*",
+#           "imports/resources/agent-statuses/**/*",
+#           "imports/resources/hoop/**/*",
+#           "imports/resources/queues/**/*",
+#           "imports/resources/quick-connects/**/*",
+#           "imports/resources/routing-profiles/**/*",
+#           "imports/resources/security-profiles/**/*",
+#         ]
 
-# workshop-lambda:
+# lambda:
 #   stage: parent
 #   trigger:
-#     include: amzconnect-lambda-function-workshop/.gitlab-ci.yml
+#     include: amzconnect-lambda-functions/.gitlab-ci.yml
 #     strategy: depend
 #   rules:
-#     - changes: [amzconnect-lambda-function-workshop/**/*]
+#     - changes: [amzconnect-lambda-functions/**/*]
 
 # supporting-infra:
 #   stage: parent
@@ -68,4 +77,4 @@ assume-role:
 #     include: amzconnect-contact-flows/.gitlab-ci.yml
 #     strategy: depend
 #   rules:
-#     - changes: [amzconnect-contact-flows/**/*]
+#     - changes: [amzconnect-contact-flows/**/*, imports/resources/flows/**/*]

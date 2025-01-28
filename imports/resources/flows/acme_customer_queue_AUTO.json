@@ -1,0 +1,9 @@
+{
+  "Name": "acme_customer_queue_AUTO",
+  "Type": "CUSTOMER_QUEUE",
+  "Content": "{\"Version\":\"2019-10-30\",\"StartAction\":\"7c3cfb6e-2d8c-481f-8ec7-f259ce0b09c3\",\"Metadata\":{\"entryPointPosition\":{\"x\":18.5,\"y\":68.8},\"ActionMetadata\":{\"040feeb0-3ff3-4d4b-8f65-31ffaf0749c3\":{\"position\":{\"x\":484.8,\"y\":130.4}},\"7c3cfb6e-2d8c-481f-8ec7-f259ce0b09c3\":{\"position\":{\"x\":208.8,\"y\":102.4},\"parameters\":{\"Messages\":[null,{\"PromptId\":{\"displayName\":\"CustomerQueue.wav\"}}]},\"audio\":[{\"id\":\"arn:aws:connect:${REGION}:${ACCT_ID}:instance/${INSTANCE_ID}/prompt/${P:CustomerQueue.wav:P}\",\"text\":\"CustomerQueue.wav\",\"type\":\"Prompt\"}]}}},\"Actions\":[{\"Parameters\":{},\"Identifier\":\"040feeb0-3ff3-4d4b-8f65-31ffaf0749c3\",\"Type\":\"DisconnectParticipant\",\"Transitions\":{}},{\"Parameters\":{\"Messages\":[{\"Text\":\"Hi, Thanks for calling. Please stay on the line for the next available representative.\"},{\"PromptId\":\"arn:aws:connect:${REGION}:${ACCT_ID}:instance/${INSTANCE_ID}/prompt/${P:CustomerQueue.wav:P}\"}]},\"Identifier\":\"7c3cfb6e-2d8c-481f-8ec7-f259ce0b09c3\",\"Type\":\"MessageParticipantIteratively\",\"Transitions\":{\"NextAction\":\"040feeb0-3ff3-4d4b-8f65-31ffaf0749c3\",\"Errors\":[{\"NextAction\":\"040feeb0-3ff3-4d4b-8f65-31ffaf0749c3\",\"ErrorType\":\"NoMatchingError\"}]}}]}",
+  "Tags": {
+    "repository": "connect-cicd-terraform/amzconnect-contact-flows"
+  },
+  "Description": "Provisioned via Terraform"
+}

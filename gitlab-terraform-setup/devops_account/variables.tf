@@ -21,9 +21,9 @@ variable "aud_value" {
 }
 
 variable "repo_value" {
-  type    = string
+  type        = string
   description = "The value of the Gitlab ID and repo. Ex. myname/myrepo"
-  default = ""
+  default     = ""
 }
 
 

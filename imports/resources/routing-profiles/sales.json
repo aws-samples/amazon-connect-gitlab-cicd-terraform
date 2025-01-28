@@ -1,0 +1,51 @@
+{
+  "Name": "sales",
+  "Media": [
+    {
+      "Channel": "CHAT",
+      "Concurrency": 2,
+      "CrossChannelBehavior": {
+        "BehaviorType": "ROUTE_CURRENT_CHANNEL_ONLY"
+      }
+    },
+    {
+      "Channel": "TASK",
+      "Concurrency": 1,
+      "CrossChannelBehavior": {
+        "BehaviorType": "ROUTE_CURRENT_CHANNEL_ONLY"
+      }
+    },
+    {
+      "Channel": "VOICE",
+      "Concurrency": 1,
+      "CrossChannelBehavior": {
+        "BehaviorType": "ROUTE_CURRENT_CHANNEL_ONLY"
+      }
+    }
+  ],
+  "OutboundQueue": "sales",
+  "Tags": {
+    "repository": "connect-cicd-terraform/amzconnect-admin-objects"
+  },
+  "Description": "Routing profile for sales",
+  "Queues": [
+    {
+      "QueueName": "sales",
+      "Channel": "CHAT",
+      "Priority": 1,
+      "Delay": 0
+    },
+    {
+      "QueueName": "sales",
+      "Channel": "VOICE",
+      "Priority": 1,
+      "Delay": 0
+    },
+    {
+      "QueueName": "BasicQueue",
+      "Channel": "VOICE",
+      "Priority": 1,
+      "Delay": 0
+    }
+  ]
+}

@@ -1,7 +1,10 @@
 *.js
+!amzconnect-contact-flows/scripts/export-cli/**/*.js
+!amzconnect-contact-flows/scripts/export-cli/utils/*.js
 !scripts/*.js
 !**/scripts/*.js
 !jest.config.js
+!export-cli/**/*
 *.d.ts
 node_modules
 **/node_modules
@@ -14,3 +17,8 @@ cdk.out
 
 # Terraform
 .terraform/**/*
+terraform.tfstate
+terraform.tfstate.backup
+
+# CCAAS Tool Exports
+exports/**/*

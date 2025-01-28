@@ -1,0 +1,20 @@
+{
+  "Name": "finance",
+  "Status": "ENABLED",
+  "HoursOfOperationId": "finance",
+  "Tags": {
+    "repository": "connect-cicd-terraform/amzconnect-admin-objects"
+  },
+  "OutboundCallerConfig": {
+    "OutboundCallerIdName": "Acme",
+    "OutboundCallerIdNumberId": {
+      "env": {
+        "dev": "+15555551214",
+        "stg": "+15555551213",
+        "prod": "+15555551212"
+      }
+    },
+    "OutboundFlowId": "acme_outbound_flow1_AUTO"
+  },
+  "QuickConnects": ["sales", "phone_number"]
+}

@@ -1,0 +1,8 @@
+{
+  "Name": "Meeting",
+  "Description": "In a Meeting",
+  "State": "ENABLED",
+  "Type": "CUSTOM",
+  "DisplayOrder": 1,
+  "Tags": {}
+}

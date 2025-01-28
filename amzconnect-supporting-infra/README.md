@@ -5,14 +5,18 @@ This folder houses all code to provision supporting infrastructure such as an S3
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7 |
+| <a name="requirement_archive"></a> [archive](#requirement\_archive) | ~> 2.4.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.35.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_archive"></a> [archive](#provider\_archive) | n/a |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_archive"></a> [archive](#provider\_archive) | ~> 2.4.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.35.0 |
 | <a name="provider_awscc"></a> [awscc](#provider\_awscc) | n/a |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 
@@ -28,13 +32,13 @@ No requirements.
 
 | Name | Type |
 |------|------|
-| [aws_cloudwatch_log_group.ACMElexbotLogGroup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_cloudwatch_log_group.lexbot_log_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_s3_object.object](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_ssm_parameter.deploy_assets_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [awscc_connect_integration_association.this](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/connect_integration_association) | resource |
 | [awscc_lex_bot.this](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/lex_bot) | resource |
-| [awscc_lex_bot_alias.InfraStackACMElexbotAlias](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/lex_bot_alias) | resource |
-| [awscc_lex_bot_version.InfraStackACMElexbotVersion](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/lex_bot_version) | resource |
+| [awscc_lex_bot_alias.lexbot_alias](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/lex_bot_alias) | resource |
+| [awscc_lex_bot_version.lexbot_version](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/lex_bot_version) | resource |
 | [null_resource.redeploy_trigger](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [archive_file.lexbot](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/file) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
@@ -54,6 +58,7 @@ No requirements.
 | <a name="input_env"></a> [env](#input\_env) | n/a | `string` | `"dev"` | no |
 | <a name="input_idle_session_ttl_in_seconds"></a> [idle\_session\_ttl\_in\_seconds](#input\_idle\_session\_ttl\_in\_seconds) | IdleSessionTTLInSeconds of the resource | `number` | n/a | yes |
 | <a name="input_ivr_id"></a> [ivr\_id](#input\_ivr\_id) | The name of the functional alias prefix descriptor for the instance | `string` | `null` | no |
+| <a name="input_lexbot_alias"></a> [lexbot\_alias](#input\_lexbot\_alias) | Lex bot name for this resource | `string` | n/a | yes |
 | <a name="input_lexbot_description"></a> [lexbot\_description](#input\_lexbot\_description) | Lex Bot Description | `string` | `""` | no |
 | <a name="input_lexbot_name"></a> [lexbot\_name](#input\_lexbot\_name) | Lex bot name for this resource | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region: us-east-1, us-west-2. Used to build resource name. | `string` | n/a | yes |
