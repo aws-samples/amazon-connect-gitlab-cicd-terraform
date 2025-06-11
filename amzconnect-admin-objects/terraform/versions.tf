@@ -23,11 +23,11 @@ terraform {
 
 provider "aws" {
   region = var.region
-  default_tags {
-    tags = {
-      repository = var.repo
-    }
-  }
+  #   default_tags {
+  #     tags = {
+  #       repository = var.repo
+  #     }
+  #   }
 }
 
 provider "awscc" {

@@ -72,12 +72,16 @@ resource "aws_iam_policy" "power_user_policy" {
           "iam:UntagRole",
           "iam:CreatePolicy",
           "iam:ListPolicyVersions",
+          "iam:ListPolicies",
           "iam:UntagPolicy",
           "iam:UpdateRole",
           "iam:GetRolePolicy",
           "iam:DeletePolicyVersion",
           "iam:SetDefaultPolicyVersion",
           "iam:ListInstanceProfilesForRole",
+          "iam:CreateServiceLinkedRole",
+          "iam:DeleteServiceLinkedRole",
+          "iam:GetServiceLinkedRoleDeletionStatus",
           "organizations:DescribeOrganization",
           "account:ListRegions"
         ]

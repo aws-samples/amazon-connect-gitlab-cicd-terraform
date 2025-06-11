@@ -5,7 +5,7 @@ locals {
 
   # If queues already exist (i.e. the development instance where the queues were created) the below code can be uncommented and import the queues, but 
   # must exist for the code to work. The data object will throw an error if the queues do not exist.
-  #   q_names   = [for k, v in local.allqs : v.Name]
+  #   q_names = [for k, v in local.allqs : v.Name]
   #   q_imports = {
   #     for k, v in data.aws_connect_queue.queues : k => "${nonsensitive(data.aws_ssm_parameter.amz-connect-instance-id.value)}:${v.queue_id}"
   #   }
@@ -31,7 +31,7 @@ locals {
 #   to       = aws_connect_queue.this[each.key]
 #   id       = each.value
 # }
-#
+
 
 
 ################################################################################
@@ -41,7 +41,7 @@ resource "aws_connect_queue" "this" {
   for_each = local.allqs
 
   # required
-  hours_of_operation_id = try(aws_connect_hours_of_operation.this[each.value.HoursOfOperationId].hours_of_operation_id, null)
+  hours_of_operation_id = try(aws_connect_hours_of_operation.this[each.value.HoursOfOperationId].hours_of_operation_id, data.aws_connect_hours_of_operation.basic_hours.hours_of_operation_id)
   instance_id           = local.instance_id
   name                  = each.key
 
@@ -61,6 +61,14 @@ resource "aws_connect_queue" "this" {
 
   quick_connect_ids = var.qc_option ? [for key in each.value.QuickConnects : lookup(local.qc_map, key, null)] : []
   status            = try(each.value.Status, null)
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags, e.g. because a management agent
+      # updates these based on some ruleset managed elsewhere.
+      quick_connect_ids,
+    ]
+  }
 
   #   # tags
   #   tags = merge(

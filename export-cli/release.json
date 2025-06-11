@@ -7,5 +7,6 @@
   "security-profiles": ["!Admin", "!Agent", "*"],
   "quick-connects": ["*"],
   "agent-statuses": ["!Available", "!Offline", "*"],
-  "bots": ["*"]
+  "bots": ["*"],
+  "views": ["*"]
 }

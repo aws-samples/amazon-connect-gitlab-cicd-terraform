@@ -4,6 +4,11 @@ const StsWrapper = require('./sts-wrapper');
 const release = require('../release.json');
 const { mkdir, rmdir, rm, writeFile } = require('./io-util');
 const { stripResponseMetadata } = require('./lex-utils');
+const https = require('https');
+const AdmZip = require('adm-zip');
+const path = require('path');
+const fs = require('fs');
+const placeholders = require('../placeholders.json');
 
 class NluExporter {
 
@@ -38,26 +43,58 @@ class NluExporter {
     }
 
     async exportV2Bots() {
-
         mkdir(this.#outputDir);
-        const { names, versions } = this.#getBotFilters();
+        const { names, versions, prefixFilters, excludePrefixFilters } = this.#getBotFilters();
 
-        if (names.length < 1) {
-            console.log('NluExporter.exportV2Bots: No bots to export!');
+        // Always fetch all bots if we have prefix filters or exclusion filters
+        const fetchAllBots = prefixFilters.length > 0 || excludePrefixFilters.length > 0 || names.length < 1;
+        
+        // Fetch bots from AWS
+        const bots = await this.#lex.listBots(fetchAllBots ? [] : names);
+        
+        if (bots.size < 1) {
+            console.log('NluExporter.exportV2Bots: No bots found!');
             return;
         }
 
-        const bots = await this.#lex.listBots(names[0] === '*' ? [] : names);
-        bots.forEach(async (b) => {
-            await this.exportV2Bot(b.botId, versions.get(b.botName) || NluExporter.#LATEST_VERSION);
-        });
+        // Filter bots based on our criteria
+        let botsToExport = new Map();
+        
+        if (prefixFilters.length > 0 || excludePrefixFilters.length > 0 || names.length > 0) {
+            console.log(`NluExporter.exportV2Bots: Filtering ${bots.size} bots using ${prefixFilters.length} prefix filters, ${excludePrefixFilters.length} exclusion filters, and ${names.length} specific names`);
+            
+            bots.forEach((bot, botName) => {
+                // First check if the bot should be excluded
+                if (excludePrefixFilters.some(prefix => botName.startsWith(prefix))) {
+                    return; // Skip this bot
+                }
+                
+                // Then check if the bot matches inclusion criteria
+                if (prefixFilters.some(prefix => botName.startsWith(prefix)) || names.includes(botName)) {
+                    botsToExport.set(botName, bot);
+                }
+            });
+            
+            console.log(`NluExporter.exportV2Bots: Found ${botsToExport.size} bots after filtering`);
+        } else {
+            // No filtering needed
+            botsToExport = bots;
+        }
 
+        // Export each bot
+        if (botsToExport.size > 0) {
+            botsToExport.forEach(async (b) => {
+                await this.exportV2Bot(b.botId, versions.get(b.botName) || NluExporter.#LATEST_VERSION);
+            });
+        } else {
+            console.log('NluExporter.exportV2Bots: No bots to export after filtering!');
+        }
     }
 
     async exportV2Bot(botId, targetVersion) {
-
         if (!botId) throw new Error('Illegal arg: botId is falsy!');
 
+        // Get basic bot information
         const bot = stripResponseMetadata(await this.#lex.describeBot(botId));
         if (!bot.botName) throw new Error(`Bot [${botId}] not found!`);
 
@@ -66,193 +103,96 @@ class NluExporter {
         rmdir(botOutputPath);
         mkdir(botOutputPath);
 
-        const content = JSON.stringify(bot, null, 2);
-        writeFileSync(`${botOutputPath}/bot.json`, content);
-
-        const tags = await this.#lex.listResourceTags(`${this.#botArnPrefix}/${bot.botId}`);
-        if (tags) bot.tags = tags;
-
+        // Get the appropriate version
         const botVersion = await this.#getVersion(botName, botId, targetVersion);
-        //console.log(`NluExporter.exportV2Bot: [${botName}] target version = [${botVersion}]`);
-        writeFileSync(`${botOutputPath}/source.txt`, `${botName}-v${botVersion}`);
+        console.log(`NluExporter.exportV2Bot: [${botName}] target version = [${botVersion}]`);
 
-        await this.#exportBotVersion(bot, botVersion, botOutputPath);
+        // Skip DRAFT version - we only want to export numeric versions
+        if (botVersion === NluExporter.#DRAFT_VERSION) {
+            console.log(`NluExporter.exportV2Bot: Skipping DRAFT version for [${botName}]`);
+            return;
+        }
+
+        // Use the AWS export API to get the complete bot definition
+        console.log(`Initiating export for bot ${botId} version ${botVersion}...`);
+        const createExportResponse = await this.#lex.createBotExport(botId, botVersion);
+        const exportId = createExportResponse.exportId;
+        console.log(`Export initiated with ID: ${exportId}`);
+        
+        // Poll until export is complete
+        console.log("Waiting for export to complete...");
+        let exportStatus, exportUrl;
+        do {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between checks
+            
+            const describeResponse = await this.#lex.describeBotExport(exportId);
+            exportStatus = describeResponse.exportStatus;
+            console.log(`Export status: ${exportStatus}`);
+            
+            if (exportStatus === "Completed") {
+                exportUrl = describeResponse.downloadUrl;
+            } else if (exportStatus === "Failed") {
+                throw new Error(`Export failed: ${describeResponse.failureReasons}`);
+            }
+        } while (exportStatus === "InProgress");
+        
+        if (!exportUrl) {
+            throw new Error("Export completed but no download URL was provided");
+        }
+        
+        // Download and extract the export
+        const zipPath = path.join(botOutputPath, `bot-${botVersion}.zip`);
+        await this.#downloadFile(exportUrl, zipPath);
+        await this.#extractZipFile(zipPath, botOutputPath);
+        
+        // We're done - the extracted files from the zip are in the output directory
+        console.log(`NluExporter.exportV2Bot: Exported [${botName}] bot version ${botVersion}`);
         await this.#exportBotAliases(botName, botId, botOutputPath);
-        await this.#exportBotLocales(bot, botVersion, botOutputPath);
         console.log(`NluExporter.exportV2Bot: Exported [${botName}] bot`);
     }
 
-    async #exportBotVersion(bot, botVersion, outputPath) {
-
-        let version;
-        if (botVersion === NluExporter.#DRAFT_VERSION) {
-            version = {
-                botId: bot.botId,
-                botName: bot.botname,
-                botVersion: NluExporter.#DRAFT_VERSION,
-                roleArn: 'NA',
-                dataPrivacy: bot.dataPrivacy,
-                idleSessionTTLInSeconds: bot.idleSessionTTLInSeconds,
-                botStatus: 'NA'
-            };
-        } else {
-            version = stripResponseMetadata(await this.#lex.describeBotVersion(bot.botId, botVersion));
-        }
-
-        const content = JSON.stringify(version, null, 2);
-        writeFileSync(`${outputPath}/version.json`, content);
-        console.log(`NluExporter.exportBotVersion: [${bot.botName}] version [${version?.botVersion}]`);
+    async #downloadFile(url, outputPath) {
+        return new Promise((resolve, reject) => {
+            const file = fs.createWriteStream(outputPath);
+            
+            https.get(url, (response) => {
+                response.pipe(file);
+                
+                file.on('finish', () => {
+                    file.close();
+                    console.log(`File downloaded to ${outputPath}`);
+                    resolve();
+                });
+            }).on('error', (err) => {
+                fs.unlink(outputPath, () => {}); // Delete the file on error
+                reject(err);
+            });
+        });
     }
 
-    async #exportBotAliases(botName, botId, outputPath) {
+    async #extractZipFile(zipPath, extractPath) {
+        const zip = new AdmZip(zipPath);
+        zip.extractAllTo(extractPath, true);
+        console.log(`Extracted zip file to ${extractPath}`);
+        
+        // Delete the zip file after extraction
+        fs.unlinkSync(zipPath);
+        console.log(`Deleted temporary zip file: ${zipPath}`);
+    }
 
-        const content = [];
-        const aliases = await this.#lex.listBotAliases(botId);
-
-        for (const a of aliases) {
-
-            const alias = stripResponseMetadata(await this.#lex.describeBotAlias(botId, a.botAliasId));
-            if (!alias) {
-                console.warn(`NluExporter.exportBotAliases: [${botName}/${a.botAliasId}] alias not found! Skipped.`);
-                return;
+    #findBotJson(dir) {
+        const files = fs.readdirSync(dir);
+        for (const file of files) {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
+            if (stat.isDirectory()) {
+                const result = this.#findBotJson(filePath);
+                if (result) return result;
+            } else if (file === 'Bot.json') {
+                return filePath;
             }
-
-            const tags = await this.#lex.listResourceTags(`${this.#aliasArnPrefix}/${botId}/${a.botAliasId}`);
-            if (tags) alias.tags = tags;
-
-            console.log(`NluExporter.exportBotAliases: Exporting [${botName}/${a.botAliasName}] alias ...`);
-            content.push(alias);
         }
-
-        writeFileSync(`${outputPath}/aliases.json`, JSON.stringify(content, null, 2));
-        console.log(`NluExporter.exportBotAliases: Exported [${content.length}] [${botName}] aliases`);
-    }
-
-    async #exportBotLocales(bot, botVersion, outputPath) {
-
-        const content = [];
-        const { botId, botName } = bot;
-        const locales = await this.#lex.listBotLocales(botId, botVersion);
-        const localesPath = `${outputPath}/locales`;
-        mkdir(localesPath);
-
-        for (const l of locales) {
-
-            if (!l) continue;
-            const localeId = l.localeId;
-            const locale = stripResponseMetadata(await this.#lex.describeBotLocale(botId, botVersion, localeId));
-            if (!locale) {
-                console.warn(`NluExporter.exportBotLocales: [${botName}/${localeId}] locale not found! Skipped.`);
-                continue;
-            }
-
-            content.push(locale);
-            const localePath = `${localesPath}/${localeId}`;
-            mkdir(localePath);
-            await this.#exportCustomVocabularies(bot, botVersion, localeId, localePath);
-            await this.#exportSlotTypes(bot, botVersion, localeId, localePath);
-            await this.#exportIntents(bot, botVersion, localeId, localePath);
-            console.log(`NluExporter.exportBotLocales: Exported [${botName}/${localeId}] locale`);
-        }
-
-        //console.log(`NluExporter.exportBotLocales: [${botName}] locales =`, JSON.stringify(content, null, 2));
-        mkdir(localesPath);
-        writeFileSync(`${localesPath}/locales.json`, JSON.stringify(content, null, 2));
-    }
-
-    async #exportCustomVocabularies(bot, botVersion, localeId, outputPath) {
-
-        if (!NluExporter.CUST_VOCAB_LOCALES.includes(localeId)) return;
-
-        const items = [];
-        const { botId, botName } = bot;
-        const vocab = await this.#lex.listLocaleVocabularyItems(botId, botVersion, localeId);
-        console.log(`NluExporter.exportCustomVocabularies: [${botName}/${localeId}] vocab =`, JSON.stringify(vocab, null, 2));
-
-        let content = 'phrase\tweight\tdisplayAs';
-        for (const v of vocab) {
-            if (!v) continue;
-            items.push({ phrase: v.phrase, displayAs: v.displayAs, weight: v.weight });
-            content += v.displayAs ? `\n${v.phrase}\t${v.weight}\t${v.displayAs}` : `\n${v.phrase}\t${v.weight}`;
-        }
-
-        // write tsv file
-        const tsvFile = writeFile(outputPath, 'CustomVocabulary.tsv', content);
-        console.log(`NluExporter.exportCustomVocabularies: tsvFile [${tsvFile}]`);
-    }
-
-    async #exportSlotTypes(bot, botVersion, localeId, outputPath) {
-
-        const { botId, botName } = bot;
-        const slotTypes = await this.#lex.listSlotTypes(botId, botVersion, localeId);
-        //console.log(`NluExporter.exportSlotTypes: [${botName}/${localeId}] intents =`, JSON.stringify(slotTypes, null, 2));
-
-        const slotTypesPath = `${outputPath}/slottypes`;
-        mkdir(slotTypesPath);
-
-        for (const st of slotTypes) {
-
-            if (!st) continue;
-            const { slotTypeId, slotTypeName } = st;
-            const slotType = stripResponseMetadata(await this.#lex.describeSlotType(botId, botVersion, localeId, slotTypeId));
-            if (!slotType) {
-                console.warn(`NluExporter.exportSlotTypes: [${botName}/${localeId}/${slotTypeName}] slot type not found! Skipped.`);
-                continue;
-            }
-
-            writeFileSync(`${slotTypesPath}/${slotTypeName}.json`, JSON.stringify(slotType, null, 2));
-            console.log(`NluExporter.exportSlotTypes: Exported [${botName}/${slotTypeName}] slot type`);
-        }
-
-    }
-
-    async #exportIntents(bot, botVersion, localeId, outputPath) {
-
-        const { botId, botName } = bot;
-        const intents = await this.#lex.listIntents(botId, botVersion, localeId);
-        const intentsPath = `${outputPath}/intents`;
-        mkdir(intentsPath);
-        const slotTypesPath = `${outputPath}/slottypes`;
-        mkdir(slotTypesPath);
-
-        for (const i of intents) {
-
-            if (!i) continue;
-            const { intentId, intentName } = i;
-            const intent = stripResponseMetadata(await this.#lex.describeIntent(botId, botVersion, localeId, intentId));
-            if (!intent) {
-                console.warn(`NluExporter.exportIntents: [${botName}/${localeId}/${intentName}] intent not found! Skipped.`);
-                continue;
-            }
-
-            writeFileSync(`${intentsPath}/${intentName}.json`, JSON.stringify(intent, null, 2));
-            await this.#exportSlots(bot, botVersion, localeId, intent, outputPath);
-            console.log(`NluExporter.exportIntents: Exported [${botName}/${intentName}] intent`);
-        }
-
-    }
-
-    async #exportSlots(bot, botVersion, localeId, intent, outputPath) {
-
-        const { botId, botName } = bot;
-        const { intentId, intentName } = intent;
-        const slotsPath = `${outputPath}/slots`;
-        mkdir(slotsPath);
-        const slots = await this.#lex.listSlots(botId, botVersion, localeId, intentId);
-
-        for (const s of slots) {
-
-            if (!s) continue;
-            const { slotId, slotName } = s;
-            const slot = stripResponseMetadata(await this.#lex.describeSlot(botId, botVersion, localeId, intentId, slotId));
-            if (!slot) {
-                console.warn(`NluExporter.exportSlots: [${botName}/${localeId}/${intentId}/${slotId}] slot not found! Skipped.`);
-                continue;
-            }
-
-            writeFileSync(`${slotsPath}/${intentName}_${slotName}.json`, JSON.stringify(slot, null, 2));
-            console.log(`NluExporter.exportSlots: Exported [${botName}/${intentName}/${slotName}] slot`);
-        }
+        return null;
     }
 
     async #getVersion(botName, botId, targetVersion = NluExporter.#LATEST_VERSION) {
@@ -279,10 +219,11 @@ class NluExporter {
     }
 
     #getBotFilters() {
-
         const data = {
             names: [],
-            versions: new Map()
+            versions: new Map(),
+            prefixFilters: [],
+            excludePrefixFilters: []  // New array for exclusion patterns
         };
 
         const bots = release['bots'] || [];
@@ -291,32 +232,84 @@ class NluExporter {
             return data;
         }
 
-        for (const b of bots) {
+        // Check if we have a wildcard entry that matches all bots
+        if (bots.includes('*')) {
+            console.log('NluExporter.getBotFilters: Wildcard "*" detected, fetching all bots');
+            data.names = []; // Empty array will fetch all bots
+            return data;
+        }
 
+        // Process each bot entry
+        for (const b of bots) {
             if (!b || typeof b !== 'string') continue;
 
             const tokens = b.split(':');
             if (tokens.length < 1 || !tokens[0]) continue;
 
-            // handle wildcard
-            if (tokens.length === 1 && tokens[0].trim() === '*') {
-                data.names = ['*'];
-                data.versions.clear();
-                return data;
-            }
-
-            const name = tokens[0];
+            let name = tokens[0];
             const version = tokens.length > 1
                 ? tokens[1] || NluExporter.#LATEST_VERSION
                 : NluExporter.#LATEST_VERSION;
 
-            data.names.push(name);
-            data.versions.set(name, version);
+            // Check if this is an exclusion pattern
+            const isExclude = name.startsWith('!');
+            if (isExclude) {
+                name = name.slice(1); // Remove the ! at the beginning
+            }
+
+            // If this is a prefix wildcard (e.g., "QnA*" or "!QnA*")
+            if (name.endsWith('*') && name !== '*') {
+                const prefix = name.slice(0, -1); // Remove the * at the end
+                
+                if (isExclude) {
+                    console.log(`NluExporter.getBotFilters: Exclusion prefix detected: "!${prefix}*"`);
+                    data.excludePrefixFilters.push(prefix);
+                } else {
+                    console.log(`NluExporter.getBotFilters: Prefix wildcard detected: "${prefix}*"`);
+                    data.prefixFilters.push(prefix);
+                }
+            } else if (isExclude) {
+                // This is an exact bot name to exclude
+                console.log(`NluExporter.getBotFilters: Exclusion name detected: "!${name}"`);
+                data.excludePrefixFilters.push(name); // Add the exact name to exclude
+            } else {
+                // This is an exact bot name to include
+                data.names.push(name);
+                data.versions.set(name, version);
+            }
         }
 
         return data;
     }
 
+    async #exportBotAliases(botName, botId, outputPath) {
+
+        const content = [];
+        const aliases = await this.#lex.listBotAliases(botId);
+        const accountId = await this.#sts.getAccountId();
+
+        for (const a of aliases) {
+
+            const alias = stripResponseMetadata(await this.#lex.describeBotAlias(botId, a.botAliasId));
+            if (!alias) {
+                console.warn(`NluExporter.exportBotAliases: [${botName}/${a.botAliasId}] alias not found! Skipped.`);
+                return;
+            }
+
+            const tags = await this.#lex.listResourceTags(`${this.#aliasArnPrefix}/${botId}/${a.botAliasId}`);
+            if (tags) alias.tags = tags;
+
+            console.log(`NluExporter.exportBotAliases: Exporting [${botName}/${a.botAliasName}] alias ...`);
+            content.push(alias);
+        }
+
+        let aliasContent = JSON.stringify(content, null, 2);
+        aliasContent = aliasContent.replaceAll(accountId, placeholders.ACCOUNT);
+        aliasContent = aliasContent.replaceAll(this.#region, placeholders.REGION);
+
+        writeFileSync(`${outputPath}/aliases.json`, aliasContent); //JSON.stringify(aliasContent, null, 2)
+        console.log(`NluExporter.exportBotAliases: Exported [${aliasContent.length}] [${botName}] aliases`);
+    }
 }
 
 module.exports = NluExporter;

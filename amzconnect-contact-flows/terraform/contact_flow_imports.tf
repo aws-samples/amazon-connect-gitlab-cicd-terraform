@@ -22,8 +22,6 @@ data "aws_connect_contact_flow" "contact_flows" {
   name        = each.value
 }
 
-
-
 import {
   for_each = local.contact_flow_imports
   to       = aws_connect_contact_flow.contact_flows[each.key]

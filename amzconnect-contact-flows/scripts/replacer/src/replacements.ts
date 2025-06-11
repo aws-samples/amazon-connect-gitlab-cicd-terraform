@@ -606,7 +606,7 @@ export class ContactFlowBuilder {
     protected writeContactFlow(contactFlow: ContactFlow, dir: string) {
         // Create directory if it doesn't exist
         if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
+            fs.mkdirSync(dir, { recursive: true });
         }
 
         // Build file path

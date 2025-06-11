@@ -1,0 +1,63 @@
+[
+  {
+    "botAliasId": "6D2PWJ4ZZP",
+    "botAliasLocaleSettings": {
+      "en_US": {
+        "enabled": true
+      },
+      "es_US": {
+        "enabled": true
+      }
+    },
+    "botAliasName": "current",
+    "botAliasStatus": "Available",
+    "botId": "RRR1QBJYLY",
+    "botVersion": "2",
+    "conversationLogSettings": {
+      "audioLogSettings": [
+        {
+          "destination": {
+            "s3Bucket": {
+              "logPrefix": "/lex-audio-logs/",
+              "s3BucketArn": "arn:aws:s3:::dev-${REGION}-s3-connect-cicd-tf-${ACCT_ID}"
+            }
+          },
+          "enabled": false
+        }
+      ],
+      "textLogSettings": [
+        {
+          "destination": {
+            "cloudWatch": {
+              "cloudWatchLogGroupArn": "arn:aws:logs:${REGION}:${ACCT_ID}:log-group:lex/acme-lexbot-logs",
+              "logPrefix": "/aws/lex/acme-lexbot/current"
+            }
+          },
+          "enabled": true
+        }
+      ]
+    },
+    "sentimentAnalysisSettings": {
+      "detectSentiment": true
+    },
+    "tags": {
+      "AmazonConnectEnabled": "True"
+    }
+  },
+  {
+    "botAliasId": "TSTALIASID",
+    "botAliasLocaleSettings": {
+      "es_US": {
+        "enabled": true
+      }
+    },
+    "botAliasName": "TestBotAlias",
+    "botAliasStatus": "Available",
+    "botId": "RRR1QBJYLY",
+    "botVersion": "DRAFT",
+    "sentimentAnalysisSettings": {
+      "detectSentiment": false
+    },
+    "tags": {}
+  }
+]

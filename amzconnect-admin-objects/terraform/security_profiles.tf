@@ -14,9 +14,10 @@ locals {
 }
 
 ################################################################################
-# Routing Profile Imports
+# Security Profile Imports
 ################################################################################
 ## This code determines what quick connects are currently installed on the Amazon Connect instance
+## uncomment if the need for importing resources provisioned outside of terraform exists
 
 # data "aws_connect_security_profile" "sps" {
 #   for_each    = toset(local.sp_names)

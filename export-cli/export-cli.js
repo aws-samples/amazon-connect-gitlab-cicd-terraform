@@ -33,7 +33,7 @@ const main = async () => {
 
     console.log('*************************************************************************');
     console.log('*                                                                       *');
-    console.log('*  © 2024 Amazon Web Services, Inc. or its affiliates. All Rights       *');
+    console.log('*  © 2025 Amazon Web Services, Inc. or its affiliates. All Rights       *');
     console.log('*  Reserved. This work is licensed under a Creative Commons Attribution *');
     console.log('*  4.0 International License.                                           *');
     console.log('*                                                                       *');
@@ -42,11 +42,11 @@ const main = async () => {
     console.log('*  This utility walks you through the process of exporting Amazon       *');
     console.log('*  Connect and Amazon Lex application resources incuding:               *');
     console.log('*                                                                       *');
-    console.log('*  - Hours of operation (HOOP)                                          *');
-    console.log('*  - Queues                                                             *');
-    console.log('*  - Contact flow modules                                               *');
-    console.log('*  - Contact flows                                                      *');
-    console.log('*  - Routing profiles                                                   *');
+    console.log('*  - Hours of operation (HOOP)        - Bots                            *');
+    console.log('*  - Queues                           - Bot versions & aliases          *');
+    console.log('*  - Contact flow modules             - Intents                         *');
+    console.log('*  - Contact flows                    - Slot types                      *');
+    console.log('*  - Routing profiles                 - Slots                           *');
     console.log('*  - Security profiles                                                  *');
     console.log('*  - Agent statuses                                                     *');
     console.log('*  - Quick connects                                                     *');
@@ -57,6 +57,7 @@ const main = async () => {
     // Use CLI args if provided, otherwise prompt
     let region = cliArgs.region;
     let instanceId = cliArgs.instanceId;
+    let option = cliArgs.option;
 
     // Fallback to interactive prompt if args not provided
     if (!region) {
@@ -64,16 +65,29 @@ const main = async () => {
         console.log();
     }
 
-    const option = '1'; // Keeping your default option
+    // If option not provided via CLI, prompt for it
+    if (!option) {
+        do {
+            console.log('> Select an export option from the following list:');
+            console.log();
+            console.log('   1) Amazon Connect resources only');
+            console.log('   2) Amazon Lex resources only');
+            console.log('   3) Amazon Connect and Lex (default)');
+            console.log();
+            option = prompt('  Enter selection (1-3): ') || '3';
+        } while(!['', '1', '2', '3'].includes(option));
+    }
 
     const doConnectExport = option === '' || option === '1' || option === '3';
+    const doLexExport = option === '2' || option === '3';
 
     if (doConnectExport && !instanceId) {
         instanceId = requireResponse('Amazon Connect instance ID: ');
     }
-    const edir = path.join(__dirname, '..', 'exports')
+    
+    const edir = path.join(__dirname, '..', 'exports');
     const dir = path.join(__dirname, '..', 'exports', 'resources');
-    mkdir(edir)
+    mkdir(edir);
     mkdir(dir);
     console.log(`See path = [${dir}] for output.`);
 
@@ -83,7 +97,7 @@ const main = async () => {
         console.log();
     }
 
-    if (option === '2' || option === '3') {
+    if (doLexExport) {
         const nlu = new NluExporter(region, dir);
         await nlu.exportResources();
         console.log();
@@ -101,10 +115,11 @@ const requireResponse = (message) => {
 // Add help message function
 const showHelp = () => {
     console.log('Usage:');
-    console.log('  node script.js --region <aws-region> --instanceId <connect-instance-id>');
+    console.log('  node export-cli.js --region <aws-region> --instanceId <connect-instance-id> --option <1|2|3>');
     console.log('\nOptions:');
     console.log('  --region     AWS region (e.g., us-east-1)');
     console.log('  --instanceId Amazon Connect instance ID');
+    console.log('  --option     Export option (1=Connect only, 2=Lex only, 3=Both)');
     console.log('  --help       Show this help message\n');
 };
 

@@ -1,15 +1,7 @@
-resource "null_resource" "redeploy_trigger" {
-  triggers = {
-    s3_obj_version_id = var.s3_obj_version_id
-  }
-}
-
 resource "awscc_lex_bot" "this" {
   lifecycle {
-    replace_triggered_by = [
-      # Replace `awscc_lex_bot` each time the content of
-      # the lex bot is modified. This is mostly to circumvent issues with replace api on awscc provider.
-      null_resource.redeploy_trigger
+    ignore_changes = [
+      description
     ]
   }
   data_privacy = {
@@ -17,43 +9,81 @@ resource "awscc_lex_bot" "this" {
   }
   idle_session_ttl_in_seconds = var.idle_session_ttl_in_seconds
   name                        = var.lexbot_complete_name
-  role_arn                    = module.lexbot_role.iam_role_arn
-  auto_build_bot_locales      = var.auto_build_bot_locales
-  description                 = var.lexbot_description
+  role_arn                    = aws_iam_service_linked_role.lexv2.arn
+  auto_build_bot_locales      = true
   bot_file_s3_location = {
-    s3_bucket     = var.s3_bucket
-    s3_object_key = var.s3_object_key
-    # s3_object_version = aws_s3_object.object.version_id
+    s3_bucket         = var.s3_bucket
+    s3_object_key     = var.s3_object_key
+    s3_object_version = var.s3_obj_version_id
   }
 }
-
 
 resource "aws_lexv2models_bot_version" "lexbot_version" {
   bot_id = awscc_lex_bot.this.id
   locale_specification = {
-    "en_US" = {
-      source_bot_version = var.source_bot_version
+    for lang in local.languages :
+    lang => {
+      source_bot_version = "DRAFT"
     }
   }
 
   lifecycle {
     create_before_destroy = true
+    replace_triggered_by = [
+      awscc_lex_bot.this.bot_file_s3_location.s3_object_version
+    ]
   }
+
+  depends_on = [
+    awscc_lex_bot.this
+  ]
 }
+
+# resource "awscc_lex_bot_version" "lexbot_version" {
+#   bot_id      = awscc_lex_bot.this.id
+#   description = awscc_lex_bot.this.id
+
+#   bot_version_locale_specification = [
+#     for lang in local.languages :
+#     {
+#       locale_id = lang
+#       bot_version_locale_details = {
+#         source_bot_version = "DRAFT"
+#       }
+#     }
+#   ]
+#   lifecycle {
+#     create_before_destroy = true
+#     replace_triggered_by = [
+#       awscc_lex_bot.this.bot_file_s3_location.s3_object_version
+#     ]
+#   }
+
+#   depends_on = [
+#     awscc_lex_bot.this
+#   ]
+# }
 
 resource "awscc_lex_bot_alias" "lexbot_alias" {
   # A best practice is to use a consistent name for the alias across environments so that it can be invoked in a contact flow identically.
   bot_alias_name = var.lexbot_alias
   bot_id         = awscc_lex_bot.this.id
   bot_alias_locale_settings = [
+    for lang in local.languages :
     {
       bot_alias_locale_setting = {
         enabled = true
+        code_hook_specification = contains(keys(var.lambda_codehooks_by_locale), lang) ? {
+          lambda_code_hook = {
+            code_hook_interface_version = "1.0"
+            lambda_arn                  = var.lambda_codehooks_by_locale[lang]
+          }
+        } : null
       }
-      locale_id = "en_US"
+      locale_id = lang
     }
   ]
-  bot_version = aws_lexv2models_bot_version.lexbot_version.bot_version
+  bot_version = aws_lexv2models_bot_version.lexbot_version.bot_version #awscc_lex_bot_version.lexbot_version.bot_version
   conversation_log_settings = {
     enabled = true
     text_log_settings = [
@@ -80,74 +110,89 @@ resource "awscc_lex_bot_alias" "lexbot_alias" {
   sentiment_analysis_settings = {
     detect_sentiment = true
   }
-
 }
+
 
 #####################################################
 # IAM assumable role with custom policies for Lex bot
 #####################################################
-module "lexbot_role" {
-  # This is a demo and using latest
-  # checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
+# module "lexbot_role" {
+#   # This is a demo and using latest
+#   # checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
 
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version = "~> 5.0"
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+#   version = "~> 5.0"
 
 
-  trusted_role_services = [
-    "lexv2.amazonaws.com"
-  ]
+#   trusted_role_services = [
+#     "lexv2.amazonaws.com"
+#   ]
 
-  create_role = true
+#   create_role = true
 
-  role_name_prefix  = "${var.lexbot_iam_base_name}-role"
-  role_requires_mfa = false
+#   role_name_prefix  = "${var.lexbot_iam_base_name}-role"
+#   role_requires_mfa = false
 
-  custom_role_policy_arns = [
-    module.iam_policy.arn
-  ]
+#   custom_role_policy_arns = [
+#     module.iam_policy.arn
+#   ]
+# }
+
+# resource "aws_iam_role" "lex_role" {
+#   name               = "${var.lexbot_iam_base_name}-role"
+#   assume_role_policy = data.aws_iam_policy_document.lex_policy.json
+# }
+
+
+
+resource "aws_iam_service_linked_role" "lexv2" {
+  aws_service_name = "lexv2.amazonaws.com"
+  custom_suffix    = var.lexbot_complete_name
+
+  # this is due to a bug in the aws provider not storing the custom_suffix field. the resource continually wanted to update.
+  lifecycle {
+    ignore_changes = [custom_suffix]
+  }
 }
 
-#########################################
-# IAM policy for Lex bot
-#########################################
-module "iam_policy" {
-  # This is a demo and using latest
-  # checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
-  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  version = "~> 5.0"
 
-  name        = "${var.lexbot_iam_base_name}-policy"
-  path        = "/"
-  description = "Policy attached to ${var.lexbot_iam_base_name}-role"
+# module "iam_policy" {
+#   # This is a demo and using latest
+#   # checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
+#   version = "~> 5.0"
 
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "comprehend:DetectSentiment",
-                "polly:SynthesizeSpeech"
-            ],
-            "Resource": "*",
-            "Effect": "Allow",
-            "Sid": "lexPolicies"
-        },
-        {
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "${aws_cloudwatch_log_group.lexbot_log_group.arn}:*",
-            "Effect": "Allow",
-            "Sid": "loggingPolicies"
-        }
-    ]
-}
-EOF
-}
+#   name        = "${var.lexbot_iam_base_name}-policy"
+#   path        = "/"
+#   description = "Policy attached to ${var.lexbot_iam_base_name}-role"
+
+#   policy = <<EOF
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Action": [
+#                 "comprehend:DetectSentiment",
+#                 "polly:SynthesizeSpeech"
+#             ],
+#             "Resource": "*",
+#             "Effect": "Allow",
+#             "Sid": "lexPolicies"
+#         },
+#         {
+#             "Action": [
+#                 "logs:CreateLogGroup",
+#                 "logs:CreateLogStream",
+#                 "logs:PutLogEvents"
+#             ],
+#             "Resource": "${aws_cloudwatch_log_group.lexbot_log_group.arn}:*",
+#             "Effect": "Allow",
+#             "Sid": "loggingPolicies"
+#         }
+#     ]
+# }
+# EOF
+# }
 
 resource "aws_cloudwatch_log_group" "lexbot_log_group" {
   # This is a demo
@@ -155,7 +200,6 @@ resource "aws_cloudwatch_log_group" "lexbot_log_group" {
   # checkov:skip=CKV_AWS_158: "Ensure that CloudWatch Log Group is encrypted by KMS"
   name              = "lex/${awscc_lex_bot.this.name}-logs"
   retention_in_days = 7
-
 }
 
 resource "awscc_connect_integration_association" "this" {

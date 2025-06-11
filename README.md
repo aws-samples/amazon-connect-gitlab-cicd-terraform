@@ -1,11 +1,11 @@
 # Amazon Connect DevOps using Terraform and GitLab - New and Re-Architected Version
 
-## What's New in This Guide
+## What's New in this Guide
 
 The original Amazon Connect CI/CD workshop has been revamped to create a more comprehensive, structured, and user-friendly implementation experience. Key improvements include:
 
 - **Clearer Architecture Layout**: Enhanced documentation of the five core pipelines (connect-instance, admin-objects, supporting-infra, lambdas, and contact-flows) with improved diagrams and explanations
-- **New Export Utility Documentation**: Added detailed coverage of the AWS CCaaS Export Utility, making it easier to export and migrate existing Connect configurations
+- **New Export Utility Documentation**: Added detailed coverage of the AWS CCaaS Export Utility, making it easier to export and migrate existing Amazon Connect configurations
 - **Enhanced Security Guidance**: Added important security notes and best practices for production implementations
 - **Streamlined Configuration Steps**: Reorganized the GitLab setup process with clearer prerequisites and step-by-step instructions
 - **Environment-Specific Configurations**: New section on handling outbound caller ID mappings across different environments
@@ -34,8 +34,8 @@ There will be five pipelines deployed
 
 - amzconnect-instance pipeline which creates the Amazon Connect instance itself.
 - amzconnect-admin-objects which will create items that live within Connect such as users, queues, hours of operations, and profiles
-- amzconnect-supporting-infra pipeline which creates supporting architectures such as a lex v2 bot, s3 buckets, and any other resource which is not primarily code.
-- amzconnect-lambdas pipeline which creates all associated lambda functions and layers. This is separate so that appropriate testing and security patterns can be run against the code itself.
+- amzconnect-supporting-infra pipeline which creates supporting architectures such as a Amazon Lex v2, Amazon S3 buckets, and any other resource which is not primarily code.
+- amzconnect-lambdas pipeline which creates all associated Lambda functions and layers. This is separate so that appropriate testing and security patterns can be run against the code itself.
 - amzconnect-contact-flows pipeline which deploys the Amazon Connect contact flows themselves to the instance.
 
 ![[tfcicd-pipelines.png]](./docs/ReferenceImplementation/images/tfcicd-pipelines.png)
@@ -53,3 +53,5 @@ The code exists in a monorepo with folders for each of the pipelines as well a f
   - [Conclusion](<docs/ReferenceImplementation/06 Conclusion.md>)
 - DevOps Best Practices
   - [Recommendations](docs/BestPractices/Recommendations.md)
+- AWS Internal
+  - [How to configure your environment to use the AWS GitLab repository](docs/AWSInternal/HowToAWSGitLab.md)

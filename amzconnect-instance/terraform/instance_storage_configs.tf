@@ -111,6 +111,48 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
+#S3 Logging
+resource "aws_s3_bucket" "logging" {
+  # This bucket is used for logging
+  # checkov:skip=CKV2_AWS_62 Ensure S3 buckets should have event notifications enabled
+  # checkov:skip=CKV_AWS_18 Ensure the S3 bucket has access logging enabled
+  # checkov:skip=CKV_AWS_144 Ensure that S3 bucket has cross-region replication enabled
+  # checkov:skip=CKV_AWS_145 Ensure that S3 buckets are encrypted with KMS by default
+  # checkov:skip=CKV2_AWS_61 Ensure that an S3 bucket has a lifecycle configuration
+  force_destroy = true
+}
+
+# resource "aws_s3_bucket_acl" "logging" {
+#   bucket = aws_s3_bucket.logging.id
+#   acl    = "log-delivery-write"
+# }
+
+resource "aws_s3_bucket_public_access_block" "logging" {
+  bucket                  = aws_s3_bucket.logging.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "logging" {
+  bucket = aws_s3_bucket.logging.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "logging" {
+  bucket = aws_s3_bucket.logging.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 # Kinesis
 resource "aws_kinesis_stream" "this" {
   name            = module.amazon_connect.instance.id

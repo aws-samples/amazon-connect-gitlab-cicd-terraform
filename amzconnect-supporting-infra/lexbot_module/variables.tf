@@ -8,6 +8,12 @@ variable "lexbot_alias" {
   description = "Lex bot name for this resource"
 }
 
+variable "lexbot_languages" {
+  description = "list of anguage locales of the lex bot"
+  type        = list(string)
+  default     = ["en_US"]
+}
+
 
 variable "idle_session_ttl_in_seconds" {
   description = "IdleSessionTTLInSeconds of the resource"
@@ -66,6 +72,17 @@ variable "instance_arn" {
 variable "source_bot_version" {
   type        = string
   description = "source lex bot version number to base new version upon"
-  default     = "DRAFT"
+  default     = "null"
 }
 
+variable "lambda_code_hook_arn" {
+  type        = string
+  description = "lambda codehook arn"
+  default     = null
+}
+
+variable "lambda_codehooks_by_locale" {
+  type        = map(string)
+  description = "Map of locale ID to Lambda codehook ARN"
+  default     = {}
+}

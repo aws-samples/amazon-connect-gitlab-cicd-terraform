@@ -16,3 +16,7 @@ data "external" "aws_cli_list_phone_numbers" {
   program = ["bash", "-c", "aws connect list-phone-numbers-v2 | jq 'reduce .ListPhoneNumbersSummaryList[] as $item ({}; .[$item.PhoneNumber] = $item.PhoneNumberId)'"]
 }
 
+data "aws_connect_hours_of_operation" "basic_hours" {
+  instance_id = local.instance_id
+  name        = "Basic Hours"
+}

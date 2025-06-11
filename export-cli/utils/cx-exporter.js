@@ -44,6 +44,7 @@ class CxExporter {
         const assistantMap = await this.#qic.listAssistants();
         const botAliases = await this.#mapBotAliases();
         const accountId = await this.#sts.getAccountId();
+        const viewsList = await this.#connect.listViews();
         await this.exportHoop(hoopList);
         await this.exportQueues(qList, hoopList, phoneList, flowList);
         await this.exportModules(accountId, moduleList, qList, hoopList, promptList, flowList, botAliases, assistantMap);
@@ -52,6 +53,7 @@ class CxExporter {
         await this.exportQuickConnects(qcList, flowList, qList);
         await this.exportSecurityProfiles();
         await this.exportAgentStatuses();
+        await this.exportViews(viewsList);
     };
 
     async exportHoop(hoopList) {
@@ -347,6 +349,37 @@ class CxExporter {
         } // for(const f ...)
 
     };
+
+    async exportViews() {
+        const viewsList = await this.#connect.listViews();
+        const filtered = this.#applyFilters(viewsList, release['views'] || []);
+        if (filtered?.length < 1) return;
+    
+        const dir = join(this.#outputDir, 'views');
+        mkdir(dir);
+    
+        for (const view of filtered) {
+            const data = await this.#connect.describeView(view.Id);
+            const fileName = join(dir, `${data.Name}.json`);
+            const viewData = {
+                Name: data.Name,
+                Type: data.Type,
+                Status: data.Status,
+                Content: data.Content
+            };
+    
+            if (data.Description) {
+                viewData.Description = data.Description;
+            }
+    
+            if (data.Tags) {
+                viewData.Tags = data.Tags;
+            }
+    
+            fs.writeFileSync(fileName, JSON.stringify(viewData, null, 2));
+            console.log(`CxExporter.exportViews: Exported [${data.Name}]`);
+        }
+    }
 
     async #mapBotAliases() {
 

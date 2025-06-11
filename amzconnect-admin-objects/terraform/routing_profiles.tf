@@ -16,6 +16,7 @@ locals {
 # Routing Profile Imports
 ################################################################################
 ## This code determines what quick connects are currently installed on the Amazon Connect instance
+## uncomment if the need for importing resources provisioned outside of terraform exists
 
 # data "aws_connect_routing_profile" "rp" {
 #   for_each    = toset(local.rp_names)

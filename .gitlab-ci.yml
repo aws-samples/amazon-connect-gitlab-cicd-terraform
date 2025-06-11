@@ -69,7 +69,7 @@ assume-role-test:
 #     include: amzconnect-supporting-infra/.gitlab-ci.yml
 #     strategy: depend
 #   rules:
-#     - changes: [amzconnect-supporting-infra/**/*]
+#     - changes: [amzconnect-supporting-infra/**/*, imports/resources/bots/**/*]
 
 # contact-flows:
 #   stage: parent
@@ -77,4 +77,4 @@ assume-role-test:
 #     include: amzconnect-contact-flows/.gitlab-ci.yml
 #     strategy: depend
 #   rules:
-#     - changes: [amzconnect-contact-flows/**/*, imports/resources/flows/**/*]
+#     - changes: [amzconnect-contact-flows/**/*, imports/resources/flows/**/*, imports/resources/bots/**/*]

@@ -10,12 +10,12 @@ variable "region" {
   default     = null
 }
 
-
-variable "repo" {
-  type        = string
-  description = "The name of the repository hosting the code for this deployment"
-  default     = null
-}
+## used for default tags
+# variable "repo" {
+#   type        = string
+#   description = "The name of the repository hosting the code for this deployment"
+#   default     = null
+# }
 
 variable "ivr_id" {
   type        = string

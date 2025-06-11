@@ -19,6 +19,7 @@ cdk.out
 .terraform/**/*
 terraform.tfstate
 terraform.tfstate.backup
+.aider*\
 
 # CCAAS Tool Exports
 exports/**/*

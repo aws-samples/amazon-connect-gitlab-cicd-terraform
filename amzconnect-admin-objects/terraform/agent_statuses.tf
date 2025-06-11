@@ -16,7 +16,7 @@ locals {
 ################################################################################
 ## This code determines what agent_statuses are currently installed on the Amazon Connect instance
 
-# data "aws_connect_agent_status" "agent_statuses" {
+# data "awscc_connect_agent_status" "agent_statuses" {
 #   for_each    = toset(local.as_names)
 #   instance_id = data.aws_ssm_parameter.amz-connect-instance-id.value
 #   name        = each.value
