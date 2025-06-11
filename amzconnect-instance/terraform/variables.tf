@@ -1,13 +1,13 @@
 variable "env" {
   type        = string
   description = "The name of the SDLC environment"
-  default     = "dev"
+  default     = null
 }
 
 variable "region" {
   type        = string
   description = "The AWS region to deploy the instance"
-  default     = "us-east-1"
+  default     = null
 }
 
 variable "repo" {

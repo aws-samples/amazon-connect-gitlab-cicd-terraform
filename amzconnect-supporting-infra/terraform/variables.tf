@@ -16,16 +16,12 @@ variable "ivr_id" {
   default     = null
 }
 
-variable "capability_id" {
-  type        = string
-  description = "The name of the capability descriptor for the microservice"
-  default     = null
-}
+# variable "capability_id" {
+#   type        = string
+#   description = "The name of the capability descriptor for the microservice"
+#   default     = null
+# }
 
-variable "lexbot_name" {
-  type        = string
-  description = "Lex bot name for this resource"
-}
 
 variable "lexbot_alias" {
   type        = string
@@ -56,11 +52,3 @@ variable "auto_build_bot_locales" {
   type        = bool
   default     = true
 }
-
-variable "lexbot_description" {
-  description = "Lex Bot Description"
-  type        = string
-  default     = ""
-}
-
-

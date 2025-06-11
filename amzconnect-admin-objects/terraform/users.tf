@@ -43,4 +43,3 @@ resource "aws_connect_user" "sales_agent" {
     auto_accept                   = false
   }
 }
-

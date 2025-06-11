@@ -3,9 +3,5 @@ data "aws_ssm_parameter" "amz-connect-instance-id" {
 }
 
 data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
 
-data "archive_file" "lexbot" {
-  type        = "zip"
-  source_dir  = "../lexbot"
-  output_path = "./ACME_lexbot.zip"
-}

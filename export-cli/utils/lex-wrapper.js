@@ -16,6 +16,8 @@ const {
     DescribeSlotCommand,
     DescribeSlotTypeCommand,
     DescribeBotVersionCommand,
+    CreateExportCommand,
+    DescribeExportCommand,
     ResourceNotFoundException
 } = require('@aws-sdk/client-lex-models-v2');
 
@@ -89,35 +91,40 @@ class LexWrapper {
     }
 
     async listBots(botNames) {
-
-        Array.isArray(botNames) && botNames.length > 0
-            ? console.log('LexWrapper.listBots: Fetching details for', botNames)
-            : console.log('LexWrapper.listBots: Fetching details for all bots');
+        if (Array.isArray(botNames) && botNames.length > 0) {
+            console.log('LexWrapper.listBots: Fetching details for', botNames);
+        } else {
+            console.log('LexWrapper.listBots: Fetching details for all bots');
+        }
 
         const map = new Map();
 
         let bots;
-        if(Array.isArray(botNames) && botNames.length > 0) {
-
+        if (Array.isArray(botNames) && botNames.length > 0) {
             bots = [];
 
-            // fetch specifi bot (one at a time since API does not support otherwise)
-            for(const botName of botNames) {
-                const filters = [{ name: 'BotName', values: [ botName ], operator: 'EQ' }];
-                const botList =  await this.#listResources(BOTS, { filters }, 'botSummaries');
-                if(!Array.isArray(botList) || botList.length < 1) {
+            // fetch specific bot (one at a time since API does not support otherwise)
+            for (const botName of botNames) {
+                // Skip any botName that contains wildcard characters
+                if (botName.includes('*')) {
+                    console.log(`LexWrapper.listBots: Skipping wildcard pattern: ${botName}`);
+                    continue;
+                }
+                
+                const filters = [{ name: 'BotName', values: [botName], operator: 'EQ' }];
+                const botList = await this.#listResources(BOTS, { filters }, 'botSummaries');
+                if (!Array.isArray(botList) || botList.length < 1) {
                     console.error(`LexWrapper.listBots: Bot [${botName}] not found! Skipped ...`);
                     continue;
                 }
                 bots.push(botList[0]);
             }
-
         } else {
             // fetch all bots from Lex
             bots = await this.#listResources(BOTS, {}, 'botSummaries');
         }
 
-        if(!Array.isArray(bots)) {
+        if (!Array.isArray(bots)) {
             console.warn('LexWrapper.listBots: No bots found!');
             return map;
         }
@@ -178,10 +185,6 @@ class LexWrapper {
         return await this.#lexV2.send(new DescribeBotCommand({ botId }));
     }
 
-    async describeBot(botId) {
-        return await this.#lexV2.send(new DescribeBotCommand({ botId }));
-    }
-
     async describeBotAlias(botId, botAliasId) {
         return await this.#lexV2.send(new DescribeBotAliasCommand({ botId, botAliasId }));
     }
@@ -208,6 +211,26 @@ class LexWrapper {
 
     async describeBotVersion(botId, botVersion) {
         return await this.#lexV2.send(new DescribeBotVersionCommand({ botId, botVersion }));
+    }
+
+    async createBotExport(botId, botVersion) {
+        const exportParams = {
+            resourceSpecification: {
+                botExportSpecification: {
+                    botId: botId,
+                    botVersion: botVersion
+                }
+            },
+            fileFormat: "LexJson"
+        };
+        
+        const command = new CreateExportCommand(exportParams);
+        return await this.#lexV2.send(command);
+    }
+
+    async describeBotExport(exportId) {
+        const command = new DescribeExportCommand({ exportId });
+        return await this.#lexV2.send(command);
     }
 
 } // class

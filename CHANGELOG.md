@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file. Considerabl
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format for changes and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v1.1 06/11/2025]
+Added new functionality to CCaaS export tool
+    - Lex bots
+    - Amazon Connect views
+Modified deployment process for admin objects
+Modified deployment process for supporting infra
 
-## [Unreleased]
+## [v1.0 01/28/2025]
+Initial
 
 

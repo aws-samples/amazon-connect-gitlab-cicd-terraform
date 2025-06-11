@@ -18,6 +18,7 @@ locals {
     for k, v in data.aws_connect_quick_connect.qcs : k => v.quick_connect_id
   } : {}
 
+
 }
 
 

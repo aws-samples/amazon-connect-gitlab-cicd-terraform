@@ -19,6 +19,7 @@ locals {
 # Hours of Operation Imports
 ################################################################################
 ## This code determines what hoops are currently installed on the Amazon Connect instance
+## uncomment if the need for importing resources provisioned outside of terraform exists
 
 # data "aws_connect_hours_of_operation" "hoops" {
 #   for_each    = toset(local.hoop_names)

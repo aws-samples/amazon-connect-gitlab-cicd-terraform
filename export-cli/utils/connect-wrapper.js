@@ -13,6 +13,7 @@ const {
     ListRoutingProfileQueuesCommand,
     ListSecurityProfilesCommand,
     ListSecurityProfilePermissionsCommand,
+    ListViewsCommand,
     DescribeAgentStatusCommand,
     DescribeContactFlowCommand,
     DescribeContactFlowModuleCommand,
@@ -21,6 +22,7 @@ const {
     DescribeQuickConnectCommand,
     DescribeRoutingProfileCommand,
     DescribeSecurityProfileCommand,
+    DescribeViewCommand,
     QueueType
 } = require('@aws-sdk/client-connect');
 
@@ -37,6 +39,7 @@ const QUICK_CONNECTS = 'QUICK_CONNECTS';
 const QUEUE_QUICK_CONNECTS = 'QUEUE_QUICK_CONNECTS';
 const PHONE_NUMBERS = 'PHONE_NUMBERS';
 const AGENT_STATUSES = 'AGENT_STATUSES';
+const VIEWS = 'VIEWS';
 
 class ConnectWrapper {
 
@@ -105,6 +108,8 @@ class ConnectWrapper {
                 return new ListPhoneNumbersCommand(params);
             case AGENT_STATUSES:
                 return new ListAgentStatusesCommand(params);
+            case VIEWS:
+                return new ListViewsCommand(params);
             default:
                 throw new Error(`Invalid Connect resource type [${resourceType}]`);                                                                        
         }
@@ -277,6 +282,30 @@ class ConnectWrapper {
             AgentStatusId: id
         }));
         return data.AgentStatus;
+    }
+
+    async listViews() {
+        const views = await this.#listResources(
+            VIEWS,
+            { InstanceId: this.#instance, Type: "CUSTOMER_MANAGED" },
+            'ViewsSummaryList'
+        );
+        // console.log(`ConnectWrapper.listViews: Retrieved ${views?.length || 0} views`);
+        return views;
+    }
+
+    async describeView(id) {
+        // console.log(`ConnectWrapper.describeView: Attempting to describe view with ID: ${id}`);
+        try {
+            const data = await this.#connect.send(new DescribeViewCommand({
+                InstanceId: this.#instance,
+                ViewId: id
+            }));
+            return data.View;
+        } catch (error) {
+            console.error(`Error describing view ${id}: ${error.message}`);
+            throw error;
+        }
     }
 
     static toMap(summaryList, byId = false) {

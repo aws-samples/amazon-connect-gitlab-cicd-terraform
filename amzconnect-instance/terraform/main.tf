@@ -10,14 +10,17 @@ module "amazon_connect" {
   instance_inbound_calls_enabled     = true
   instance_outbound_calls_enabled    = true
   instance_contact_flow_logs_enabled = true
+  auto_resolve_best_voices_enabled   = true
+  contact_flow_logs_enabled          = true
+  contact_lens_enabled               = true
 
   # Instance Storage Configuration
   instance_storage_configs = local.instance_storage_configs
 
   # Tags
-  tags = {
-    foo = "bar"
-  }
+  #   tags = {
+  #     foo = "bar"
+  #   }
 }
 
 resource "aws_ssm_parameter" "this" {

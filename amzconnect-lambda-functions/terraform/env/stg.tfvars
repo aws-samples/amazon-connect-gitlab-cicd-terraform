@@ -1,3 +1,3 @@
-env  = "stg"
-repo = "connect-cicd-terraform/amzconnect-lambda-functions"
-
+env    = "stg"
+repo   = "connect-cicd-terraform/amzconnect-lambda-functions"
+ivr_id = "tfdemo"

@@ -79,12 +79,12 @@ async function provisioner(
     const COMPLETE_INST_MODULE_SUMM_LIST =
         await helpers.listContactFlowModules();
 
-    // * Rename and Archive Orphaned Flows
-    await helpers.handleOrphanedFlows(COMPLETE_INST_SUMM_LIST, FLOWS_TO_UPDATE);
-    await helpers.handleOrphanedFlowModules(
-        COMPLETE_INST_MODULE_SUMM_LIST,
-        FLOWMODULES_TO_UPDATE,
-    );
+    // * Rename and Archive Orphaned Flows - Disabling this feature for workshop.
+    // await helpers.handleOrphanedFlows(COMPLETE_INST_SUMM_LIST, FLOWS_TO_UPDATE);
+    // await helpers.handleOrphanedFlowModules(
+    //     COMPLETE_INST_MODULE_SUMM_LIST,
+    //     FLOWMODULES_TO_UPDATE,
+    // );
 
     //* Get Full list of Queues, Prompts , and Lexbots on instance
 
