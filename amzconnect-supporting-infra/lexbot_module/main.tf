@@ -9,7 +9,7 @@ resource "awscc_lex_bot" "this" {
   }
   idle_session_ttl_in_seconds = var.idle_session_ttl_in_seconds
   name                        = var.lexbot_complete_name
-  role_arn                    = aws_iam_service_linked_role.lexv2.arn
+  role_arn                    = aws_iam_role.lex_role.arn
   auto_build_bot_locales      = true
   bot_file_s3_location = {
     s3_bucket         = var.s3_bucket
@@ -38,31 +38,6 @@ resource "aws_lexv2models_bot_version" "lexbot_version" {
     awscc_lex_bot.this
   ]
 }
-
-# resource "awscc_lex_bot_version" "lexbot_version" {
-#   bot_id      = awscc_lex_bot.this.id
-#   description = awscc_lex_bot.this.id
-
-#   bot_version_locale_specification = [
-#     for lang in local.languages :
-#     {
-#       locale_id = lang
-#       bot_version_locale_details = {
-#         source_bot_version = "DRAFT"
-#       }
-#     }
-#   ]
-#   lifecycle {
-#     create_before_destroy = true
-#     replace_triggered_by = [
-#       awscc_lex_bot.this.bot_file_s3_location.s3_object_version
-#     ]
-#   }
-
-#   depends_on = [
-#     awscc_lex_bot.this
-#   ]
-# }
 
 resource "awscc_lex_bot_alias" "lexbot_alias" {
   # A best practice is to use a consistent name for the alias across environments so that it can be invoked in a contact flow identically.
@@ -112,87 +87,17 @@ resource "awscc_lex_bot_alias" "lexbot_alias" {
   }
 }
 
-
-#####################################################
-# IAM assumable role with custom policies for Lex bot
-#####################################################
-# module "lexbot_role" {
-#   # This is a demo and using latest
-#   # checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
-
-#   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-#   version = "~> 5.0"
-
-
-#   trusted_role_services = [
-#     "lexv2.amazonaws.com"
-#   ]
-
-#   create_role = true
-
-#   role_name_prefix  = "${var.lexbot_iam_base_name}-role"
-#   role_requires_mfa = false
-
-#   custom_role_policy_arns = [
-#     module.iam_policy.arn
-#   ]
-# }
-
-# resource "aws_iam_role" "lex_role" {
-#   name               = "${var.lexbot_iam_base_name}-role"
-#   assume_role_policy = data.aws_iam_policy_document.lex_policy.json
-# }
-
-
-
-resource "aws_iam_service_linked_role" "lexv2" {
-  aws_service_name = "lexv2.amazonaws.com"
-  custom_suffix    = var.lexbot_complete_name
-
-  # this is due to a bug in the aws provider not storing the custom_suffix field. the resource continually wanted to update.
-  lifecycle {
-    ignore_changes = [custom_suffix]
-  }
+resource "aws_iam_role" "lex_role" {
+  name               = "${var.lexbot_complete_name}-LexBotRole"
+  description        = "IAM role for ${var.lexbot_complete_name} Lex bot with Comprehend, Polly, and GenAI permissions"
+  assume_role_policy = data.aws_iam_policy_document.lex_assume_role.json
 }
 
-
-# module "iam_policy" {
-#   # This is a demo and using latest
-#   # checkov:skip=CKV_TF_1: "Ensure Terraform module sources use a commit hash"
-#   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
-#   version = "~> 5.0"
-
-#   name        = "${var.lexbot_iam_base_name}-policy"
-#   path        = "/"
-#   description = "Policy attached to ${var.lexbot_iam_base_name}-role"
-
-#   policy = <<EOF
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#             "Action": [
-#                 "comprehend:DetectSentiment",
-#                 "polly:SynthesizeSpeech"
-#             ],
-#             "Resource": "*",
-#             "Effect": "Allow",
-#             "Sid": "lexPolicies"
-#         },
-#         {
-#             "Action": [
-#                 "logs:CreateLogGroup",
-#                 "logs:CreateLogStream",
-#                 "logs:PutLogEvents"
-#             ],
-#             "Resource": "${aws_cloudwatch_log_group.lexbot_log_group.arn}:*",
-#             "Effect": "Allow",
-#             "Sid": "loggingPolicies"
-#         }
-#     ]
-# }
-# EOF
-# }
+resource "aws_iam_role_policy" "lex_policies" {
+  name   = "${var.lexbot_complete_name}-lex-policies"
+  role   = aws_iam_role.lex_role.id
+  policy = data.aws_iam_policy_document.lex_policies.json
+}
 
 resource "aws_cloudwatch_log_group" "lexbot_log_group" {
   # This is a demo

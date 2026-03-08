@@ -4,12 +4,16 @@
 !scripts/*.js
 !**/scripts/*.js
 !jest.config.js
+!eslint.config.js
 !export-cli/**/*
 *.d.ts
 node_modules
 **/node_modules
 **/.terraform/**/*
 **/.terraform*
+
+# macOS
+.DS_Store
 
 # CDK asset staging directory
 .cdk.staging

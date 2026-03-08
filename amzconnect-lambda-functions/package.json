@@ -8,10 +8,8 @@
     "build": "tsc && npm run copy-dependencies && npm run copy-resources",
     "watch": "tsc -w",
     "test": "jest --verbose",
-    "cdk": "cdk",
     "copy-dependencies": "node ./scripts/copy-dependencies.js",
-    "copy-resources": "node ./scripts/copy-resources.js",
-    "lint": "npx eslint . --ext .ts"
+    "copy-resources": "node ./scripts/copy-resources.js"
   },
   "keywords": [],
   "author": {
@@ -19,11 +17,14 @@
     "url": "https://aws.amazon.com"
   },
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.161",
+    "@types/node": "22.15.0",
+    "typescript": "5.9.3"
+  },
   "dependencies": {
-    "fs-extra": "10.1.0",
-    "shelljs": "0.8.5",
-    "source-map-support": "0.5.16",
-    "typescript": "5.3.3"
+    "fs-extra": "11.3.4",
+    "shelljs": "0.10.0",
+    "source-map-support": "0.5.21"
   }
 }
